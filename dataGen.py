@@ -59,7 +59,7 @@ def printFailOn(data, MAX_FAIL_CONDITIONS):
         print(data[i], "of the patients failed on rule ", i+1, "out of the total 2400 for ", MAX_FAIL_CONDITIONS, " maximum fail conditions")
 
 # Function that generates noise data
-# The paper mentions that there should be 52 noise variables, which are randomy values between 0 and 100. 
+# The paper mentions that there should be 52 noise variables, which are randomy values between 0 and 100
 def generateNoiseData():
     noiseVariables = []
     keys = []
