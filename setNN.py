@@ -26,8 +26,11 @@ def testDataset(train, test):
     #x_train, x_test, y_train, y_test = scaleSplitData(df)
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     models = getMLPModels()
-    fitModels(models, x_train, x_test, y_train, y_test)
+    predictions = fitModels(models, x_train, x_test, y_train, y_test)
     print("-------------------------------------------------------------------------------------------------------------")
+
+    # Returning the prediction for the age and distance datasets
+    return predictions
 
 # Function that first splits the data into four equal lengths
 # Then it scales the data with a standard scaler
@@ -36,11 +39,6 @@ def scaleSplitData(df):
     x = df.drop('Eligibility', axis = 1)
     y = df['Eligibility']
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=2000/4400)
-
-    # x_train.to_excel('x_train.xlsx')
-    # x_test.to_excel('x_test.xlsx')
-    # y_train.to_excel('y_train.xlsx')
-    # y_test.to_excel('y_test.xlsx')
 
     stdScaler = StandardScaler()
     stdScaler.fit(x_train)
@@ -70,15 +68,16 @@ def getMLPModels():
     models = []
 
     # Data is already shuffled
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = 10000, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = 10000, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = 10000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = 5000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = 5000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = 5000, activation = 'logistic', shuffle = False))
 
     return models
 
 # Function that fits the models to the test data
 # It also prints a simple statistical analysis of the data as well as a confusion matrix
 def fitModels(models, x_train, x_test, y_train, y_test):
+    predicts = []
 
     for model in models:
         model.fit(x_train, y_train)
@@ -88,10 +87,16 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         print(model)
         print("Confusion matrix:")
         print(confusion_matrix(y_test, predict))
-        # print("Classification report:")
-        # print(classification_report(y_test, predict))
         print("accuracy score:")
         print(accuracy_score(y_test, predict))
+
+        # print("Classification report:")
+        # print(classification_report(y_test, predict))
+
+        predicts.append(predict)
+
+    # fix that you actually return the three different predicts not just the last one
+    return predicts
 
 if __name__ == "__main__":
     main()

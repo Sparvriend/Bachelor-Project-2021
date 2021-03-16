@@ -14,6 +14,35 @@ NOISE_VARIABLES = 52
 # - TypeA = multiple fail, typeB = single fail
 # - Code in PEP8
 
+# This function is used to generate the two datasets; one consisting of perfect datapoints
+# and the other consisting of imperfect datapoints (for eligbility)
+# As a parameter, the maximum amount of conditions that can be failed on are given to the function
+# For the singular fail condition this is 1, while it is 6 for the multiple fail condition
+# The function also calculates the eligibility percentage (should be 50%)
+def generateFailData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
+    dfPerfect = generatePerfectData(DATA_POINTS)
+    dfSingleFail = generatePerfectData(DATA_POINTS)
+    dfSingleFail = failConditions(dfSingleFail, MAX_FAIL_CONDITIONS)
+
+    tf = pd.concat([dfPerfect, dfSingleFail], axis = 0, ignore_index=True)
+    eligibilityResult = checkEligibility(tf)
+    tf = eligibilityResult[0]
+
+    #dataGen.calcEligibilityPerc(tf)
+    #dataGen.printFailOn(eligibilityResult[1], MAX_FAIL_CONDITIONS, DATA_POINTS)
+
+    # Shuffeling the dataframe
+    tf = tf.sample(frac = 1).reset_index(drop=True)
+
+    # Adding noise variables
+    dfNoise = generateNoiseData(DATA_POINTS)
+    tf = pd.concat([tf, dfNoise], axis = 1)
+
+    tf = preprocessData(tf)
+    tf.to_excel(str(LOC) + str(MAX_FAIL_CONDITIONS) + str(TYPE) + '.xlsx')
+
+    return tf
+
 # Function that shows what rules caused the patients to not receive the welfare benefit
 def printFailOn(data, MAX_FAIL_CONDITIONS, DATA_POINTS):
     for i in range(len(data)):
