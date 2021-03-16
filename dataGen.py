@@ -14,44 +14,6 @@ NOISE_VARIABLES = 52
 # - TypeA = multiple fail, typeB = single fail
 # - Code in PEP8
 
-def main():
-    
-    # Generating data for multiple and single fail conditions
-    # The input to the neural network is a 64x2400 matrix (Adding eligiblity makes it a 65x2400 matrix)
-    dfSF = generateFailData(1, 1200)
-    dfMF = generateFailData(6, 1200)
-
-# This function is used to generate the two datasets; one consisting of perfect datapoints
-# and the other consisting of imperfect datapoints (for eligbility)
-# As a parameter, the maximum amount of conditions that can be failed on are given to the function
-# For the singular fail condition this is 1, while it is 6 for the multiple fail condition
-# The function also calculates the eligibility percentage (should be 50%)
-def generateFailData(MAX_FAIL_CONDITIONS, DATA_POINTS):
-    dfPerfect = generatePerfectData(DATA_POINTS)
-    dfSingleFail = generatePerfectData(DATA_POINTS)
-    dfSingleFail = failConditions(dfSingleFail, MAX_FAIL_CONDITIONS)
-
-    tf = pd.concat([dfPerfect, dfSingleFail], axis = 0, ignore_index=True)
-    eligibilityResult = checkEligibility(tf)
-    tf = eligibilityResult[0]
-
-    #calcEligibilityPerc(tf)
-    #printFailOn(eligibilityResult[1], MAX_FAIL_CONDITIONS, DATA_POINTS)
-
-    # Shuffeling the dataframe
-    tf = tf.sample(frac = 1).reset_index(drop=True)
-
-    # Adding noise variables
-    dfNoise = generateNoiseData(DATA_POINTS)
-    tf = pd.concat([tf, dfNoise], axis = 1)
-
-    # Printing to excel, preprocessing, then again printing to excel
-    tf.to_excel('tf' + str(MAX_FAIL_CONDITIONS) + '.xlsx')
-    tf = preprocessData(tf)
-    tf.to_excel('tfPreProcessed' + str(MAX_FAIL_CONDITIONS) + '.xlsx')
-
-    return tf
-
 # Function that shows what rules caused the patients to not receive the welfare benefit
 def printFailOn(data, MAX_FAIL_CONDITIONS, DATA_POINTS):
     for i in range(len(data)):
@@ -285,6 +247,3 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
                     continue
 
     return df
-   
-if __name__ == "__main__":
-    main()

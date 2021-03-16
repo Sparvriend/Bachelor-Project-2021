@@ -1,6 +1,5 @@
 import pandas as pd
 import keras
-import dataGen
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -18,27 +17,17 @@ from sklearn.metrics import accuracy_score
 
 # TODO:
 # - Play around with parameters to get the same accuracies as in the paper
-# - Accuracy decrease from single fail to multiple fail dissapeared :(
-# - Ensure that data generation is all correct
 # - Include two extra datasets (for age and distance) like in the paper (2 training datasets)
 # - Add the printFailOn to the report for a nice overview in the results section
 # - Brainstorm ideas for own research
  
-def main():
-    print("Generating training/testing data for the neural network")
-    singleFail = dataGen.generateFailData(1, 2200)
-    multipleFail = dataGen.generateFailData(6, 2200)
-    
-    print("Testing with single fail")
-    testDataset(singleFail)
-    print("Testing with multiple fail")
-    testDataset(multipleFail)
-
 # Function that calls the underlying functions for running the NN
-def testDataset(df):
-    x_train, x_test, y_train, y_test = scaleSplitData(df)
+def testDataset(train, test):
+    #x_train, x_test, y_train, y_test = scaleSplitData(df)
+    x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     models = getMLPModels()
     fitModels(models, x_train, x_test, y_train, y_test)
+    print("-------------------------------------------------------------------------------------------------------------")
 
 # Function that first splits the data into four equal lengths
 # Then it scales the data with a standard scaler
@@ -48,11 +37,24 @@ def scaleSplitData(df):
     y = df['Eligibility']
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=2000/4400)
 
-    # debugging
-    # x_train.to_excel('x_train1.xlsx')
-    # x_test.to_excel('x_test1.xlsx')
-    # y_train.to_excel('y_train1.xlsx')
-    # y_test.to_excel('y_test1.xlsx')
+    # x_train.to_excel('x_train.xlsx')
+    # x_test.to_excel('x_test.xlsx')
+    # y_train.to_excel('y_train.xlsx')
+    # y_test.to_excel('y_test.xlsx')
+
+    stdScaler = StandardScaler()
+    stdScaler.fit(x_train)
+    StandardScaler(copy = True, with_mean = True, with_std = True)
+    x_train = stdScaler.transform(x_train)
+    x_test = stdScaler.transform(x_test)
+
+    return (x_train, x_test, y_train, y_test)
+
+def manualScaleSplit(train, test):
+    x_train = train.drop('Eligibility', axis = 1)
+    x_test = test.drop('Eligibility', axis = 1)
+    y_train = train['Eligibility']
+    y_test = test['Eligibility']
 
     stdScaler = StandardScaler()
     stdScaler.fit(x_train)
