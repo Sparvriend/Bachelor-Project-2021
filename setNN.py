@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score
 
 # Neural network setup Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
@@ -47,6 +48,12 @@ def scaleSplitData(df):
     y = df['Eligibility']
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=2000/4400)
 
+    # debugging
+    # x_train.to_excel('x_train1.xlsx')
+    # x_test.to_excel('x_test1.xlsx')
+    # y_train.to_excel('y_train1.xlsx')
+    # y_test.to_excel('y_test1.xlsx')
+
     stdScaler = StandardScaler()
     stdScaler.fit(x_train)
     StandardScaler(copy = True, with_mean = True, with_std = True)
@@ -60,9 +67,10 @@ def scaleSplitData(df):
 def getMLPModels():
     models = []
 
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = 2000, activation = 'logistic'))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = 2000, activation = 'logistic'))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = 2000, activation = 'logistic'))
+    # Data is already shuffled
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = 10000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = 10000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = 10000, activation = 'logistic', shuffle = False))
 
     return models
 
@@ -78,8 +86,10 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         print(model)
         print("Confusion matrix:")
         print(confusion_matrix(y_test, predict))
-        print("Classification report:")
-        print(classification_report(y_test, predict))
+        # print("Classification report:")
+        # print(classification_report(y_test, predict))
+        print("accuracy score:")
+        print(accuracy_score(y_test, predict))
 
 if __name__ == "__main__":
     main()
