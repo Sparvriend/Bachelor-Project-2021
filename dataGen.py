@@ -2,52 +2,43 @@ import pandas as pd
 import random
 
 # Constant for the in out patient distance, measured in km
-IN_OUT_PATIENT_DISTANCE = 20
+IN_OUT_PATIENT_DISTANCE = 50
 NOISE_VARIABLES = 52
     
 # Data generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
 # The paper that is constantly mentioned in this file:
 # https://dl.acm.org/doi/abs/10.1145/158976.159012?casa_token=cTqiK-PMwnEAAAAA:KtSh_D8f5J3cV4sqSH3qyKG-XhHAb28hNt0au51BNDl4VdSQQ6aKp1W_baNu2aJ6O7LPL1YbOhhX
 
-# TODO:
-# - Add data generation for the two extra datasets for Age and Distance (mentioned in paper)
-# - TypeA = multiple fail, typeB = single fail
-# - Code in PEP8
-# - Update failOn function - It does not print correctly
-
 # This function is used to generate the two datasets; one consisting of perfect datapoints
 # and the other consisting of imperfect datapoints (for eligbility)
 # As a parameter, the maximum amount of conditions that can be failed on are given to the function
 # For the singular fail condition this is 1, while it is 6 for the multiple fail condition
 # The function also calculates the eligibility percentage (should be 50%)
-def generateFailData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
-    dfPerfect = generatePerfectData(DATA_POINTS)
-    dfSingleFail = generatePerfectData(DATA_POINTS)
-    dfSingleFail = failConditions(dfSingleFail, MAX_FAIL_CONDITIONS)
+def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
+    dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
+    tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail], axis = 0, ignore_index=True)
+    tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
-    tf = pd.concat([dfPerfect, dfSingleFail], axis = 0, ignore_index=True)
+    return tf
+
+def modifyData(tf, DATA_POINTS, TYPE, LOC):
     eligibilityResult = checkEligibility(tf)
     tf = eligibilityResult[0]
 
-    #dataGen.calcEligibilityPerc(tf)
-    #dataGen.printFailOn(eligibilityResult[1], MAX_FAIL_CONDITIONS, DATA_POINTS)
+    # calcEligibilityPerc(tf)
+    # printFailOn(eligibilityResult[1], DATA_POINTS)
 
-    # Shuffeling the dataframe
-    tf = tf.sample(frac = 1).reset_index(drop=True)
-
-    # Adding noise variables
-    dfNoise = generateNoiseData(DATA_POINTS)
-    tf = pd.concat([tf, dfNoise], axis = 1)
-
+    # Adding noise variables then preprocessing
+    tf = pd.concat([tf, generateNoiseData(DATA_POINTS)], axis = 1)
     tf = preprocessData(tf)
-    tf.to_excel(str(LOC) + str(MAX_FAIL_CONDITIONS) + str(TYPE) + '.xlsx')
+    tf.to_excel(str(LOC) + str(TYPE) + '.xlsx')
 
     return tf
 
 # Function that shows what rules caused the patients to not receive the welfare benefit
-def printFailOn(data, MAX_FAIL_CONDITIONS, DATA_POINTS):
+def printFailOn(data, DATA_POINTS):
     for i in range(len(data)):
-        print(data[i], "of the patients failed on rule ", i+1, "out of the total", DATA_POINTS*2, "for ", MAX_FAIL_CONDITIONS, " maximum fail conditions")
+        print(data[i], "of the patients failed on rule", i+1, "out of the total", DATA_POINTS*2)
 
 # Function that generates noise data
 # The paper mentions that there should be 52 noise variables, which are random values between 0 and 100
@@ -71,9 +62,7 @@ def generateNoiseData(DATA_POINTS):
 # 0 = Female, 1 = Male
 # This function can also easily be converted, so that the data already comes out as numerical in the initial data generation
 def preprocessData(df):
-
     for i in range(len(df.Age)):
-
         if(df.loc[i, "Residency"] == "Yes"):
             df.loc[i, "Residency"] = 1
         if(df.loc[i, "Residency"] == "No"):
@@ -96,14 +85,8 @@ def preprocessData(df):
 
     return df
 
-def generateNumerical(min, max, DATA_POINTS, step = 0):
-    sample = []
-
-    if step > 1:
-        sample = list(range(min, max+1, step))
-    else:
-        sample = list(range(min, max+1))
-
+def generateNumerical(min, max, DATA_POINTS, step = 1):
+    sample = list(range(min, max+1, step))
     data = []
     for i in range(DATA_POINTS):
         data.append(random.choice(sample))
@@ -126,7 +109,7 @@ def generatePerfectData(DATA_POINTS):
     # Generating numerical data:
     ageData       = generateNumerical(60,100, DATA_POINTS, 5)
     resourceData  = generateNumerical(0, 3000, DATA_POINTS)
-    distData      = generateNumerical(0, 40, DATA_POINTS)
+    distData      = generateNumerical(0, 100, DATA_POINTS)
 
     # Generating numerical contribution year data
     contrData1    = generateNumerical(1, 1, DATA_POINTS)
@@ -146,12 +129,10 @@ def generatePerfectData(DATA_POINTS):
     dat = {'Age': ageData, 'Resource': resourceData, 'Distance': distData,
            'Residency': residencyData, 'Spouse': spouseData, 'InOut': inoutData, 'Gender': genderData,
            'Contribution1': contrData1, 'Contribution2': contrData2, 'Contribution3': contrData3, 'Contribution4': contrData4, 'Contribution5': contrData5}
-
     df = pd.DataFrame(data = dat)
 
     # Correcting potential issues in the otherwise perfect dataset
     for i in range(len(df.Age)):
-
         if(df.loc[i, "Gender"] == "Male" and df.loc[i, "Age"] < 65):
             df.loc[i, "Age"] = random.choice(list(range(65, 100, 5)))
         
@@ -206,20 +187,17 @@ def checkEligibility(df):
 
 # Function that prints the eligibility percentage over the entire dataset
 def calcEligibilityPerc(df):
-    
     truePerc = 0
     for i in range(len(df.Eligibility)):
         if(df.loc[i, "Eligibility"] == 1):
             truePerc += 1
     
     truePerc /= len(df.Eligibility); truePerc *= 100
-    
     print(truePerc, "% of the dataset is eligible for a welfare benefit for a visit")
 
 # Function that modifies a (perfect) dataset, so that it fails on one or multiple conditions
 # The six rules' failing conditions are specified here as well
 def failConditions(df, MAX_FAIL_CONDITIONS):
-
     for i in range(len(df.Age)):
         # An amount of fails is generated for each row
         # The rules that it failed on are saved in conditions, so that it does not fail multiple times on the same rule
@@ -253,12 +231,8 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
 
                 for q in range(yearsPaid):
                     contrYears[random.choice(list(range(0, 5)))] = 1
-
-                df.loc[i, "Contribution1"] = contrYears[0]
-                df.loc[i, "Contribution2"] = contrYears[1]
-                df.loc[i, "Contribution3"] = contrYears[2]
-                df.loc[i, "Contribution4"] = contrYears[3]
-                df.loc[i, "Contribution5"] = contrYears[4]
+                for q in range(len(contrYears)):
+                    df.loc[i, "Contribution" + str(q+1)] = contrYears[q]
                 continue
 
             if rand == 2:
@@ -279,7 +253,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
                     continue
 
                 if df.loc[i, "InOut"] == "In":
-                    df.loc[i, "Distance"] = random.choice(list(range(IN_OUT_PATIENT_DISTANCE+1, 40)))
+                    df.loc[i, "Distance"] = random.choice(list(range(IN_OUT_PATIENT_DISTANCE+1, 100)))
                     continue
 
     return df

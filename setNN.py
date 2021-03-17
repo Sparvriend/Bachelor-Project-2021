@@ -1,11 +1,9 @@
 import pandas as pd
 import keras
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 # Neural network setup Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
@@ -17,13 +15,12 @@ from sklearn.metrics import accuracy_score
 
 # TODO:
 # - Play around with parameters to get the same accuracies as in the paper
-# - Include two extra datasets (for age and distance) like in the paper (2 training datasets)
 # - Add the printFailOn to the report for a nice overview in the results section
 # - Brainstorm ideas for own research
+# - Code in PEP8
  
 # Function that calls the underlying functions for running the NN
 def testDataset(train, test, iterations):
-    #x_train, x_test, y_train, y_test = scaleSplitData(df)
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     models = getMLPModels(iterations)
     predictions = fitModels(models, x_train, x_test, y_train, y_test)
@@ -36,10 +33,8 @@ def testDataset(train, test, iterations):
 # Then it scales the data with a standard scaler
 # Then it returns the split and scaled data
 def manualScaleSplit(train, test):
-    x_train = train.drop('Eligibility', axis = 1)
-    x_test = test.drop('Eligibility', axis = 1)
-    y_train = train['Eligibility']
-    y_test = test['Eligibility']
+    x_train = train.drop('Eligibility', axis = 1); x_test = test.drop('Eligibility', axis = 1)
+    y_train = train['Eligibility']; y_test = test['Eligibility']
 
     stdScaler = StandardScaler()
     stdScaler.fit(x_train)
@@ -55,9 +50,9 @@ def getMLPModels(iterations):
     models = []
 
     # Data is already shuffled
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
 
     return models
 
@@ -68,14 +63,11 @@ def fitModels(models, x_train, x_test, y_train, y_test):
 
     for model in models:
         model.fit(x_train, y_train)
-
         predict = model.predict(x_test)
 
         print(model)
-        print("Confusion matrix:")
-        print(confusion_matrix(y_test, predict))
-        print("accuracy score:")
-        print(accuracy_score(y_test, predict))
+        #print("Confusion matrix:\n" + confusion_matrix(y_test, predict))
+        print("Accuracy score:\n" + str(accuracy_score(y_test, predict)))
         predicts.append(predict)
 
     return predicts
