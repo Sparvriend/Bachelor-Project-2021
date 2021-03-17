@@ -13,6 +13,7 @@ NOISE_VARIABLES = 52
 # - Add data generation for the two extra datasets for Age and Distance (mentioned in paper)
 # - TypeA = multiple fail, typeB = single fail
 # - Code in PEP8
+# - Update failOn function - It does not print correctly
 
 # This function is used to generate the two datasets; one consisting of perfect datapoints
 # and the other consisting of imperfect datapoints (for eligbility)
@@ -49,7 +50,7 @@ def printFailOn(data, MAX_FAIL_CONDITIONS, DATA_POINTS):
         print(data[i], "of the patients failed on rule ", i+1, "out of the total", DATA_POINTS*2, "for ", MAX_FAIL_CONDITIONS, " maximum fail conditions")
 
 # Function that generates noise data
-# The paper mentions that there should be 52 noise variables, which are randomy values between 0 and 100
+# The paper mentions that there should be 52 noise variables, which are random values between 0 and 100
 def generateNoiseData(DATA_POINTS):
     noiseVariables = []
     keys = []
@@ -95,8 +96,14 @@ def preprocessData(df):
 
     return df
 
-def generateNumerical(min, max, DATA_POINTS):
-    sample = list(range(min, max+1))
+def generateNumerical(min, max, DATA_POINTS, step = 0):
+    sample = []
+
+    if step > 1:
+        sample = list(range(min, max+1, step))
+    else:
+        sample = list(range(min, max+1))
+
     data = []
     for i in range(DATA_POINTS):
         data.append(random.choice(sample))
@@ -117,7 +124,7 @@ def generateBoolean(valueList, DATA_POINTS):
 def generatePerfectData(DATA_POINTS):
 
     # Generating numerical data:
-    ageData       = generateNumerical(60,100, DATA_POINTS)
+    ageData       = generateNumerical(60,100, DATA_POINTS, 5)
     resourceData  = generateNumerical(0, 3000, DATA_POINTS)
     distData      = generateNumerical(0, 40, DATA_POINTS)
 
@@ -146,7 +153,7 @@ def generatePerfectData(DATA_POINTS):
     for i in range(len(df.Age)):
 
         if(df.loc[i, "Gender"] == "Male" and df.loc[i, "Age"] < 65):
-            df.loc[i, "Age"] = random.choice(list(range(65, 100)))
+            df.loc[i, "Age"] = random.choice(list(range(65, 100, 5)))
         
         if(df.loc[i, "InOut"] == "In" and df.loc[i, "Distance"] > IN_OUT_PATIENT_DISTANCE):
             df.loc[i, "InOut"] = "Out"
@@ -234,10 +241,10 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
 
             if rand == 0:
                 if df.loc[i, "Gender"] == "Male":
-                    df.loc[i, "Age"] = random.choice(list(range(0, 65)))
+                    df.loc[i, "Age"] = random.choice(list(range(0, 65, 5)))
 
                 if df.loc[i, "Gender"] == "Female":
-                    df.loc[i, "Age"] = random.choice(list(range(0, 60)))
+                    df.loc[i, "Age"] = random.choice(list(range(0, 60, 5)))
                 continue
 
             if rand == 1:

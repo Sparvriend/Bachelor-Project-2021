@@ -22,32 +22,19 @@ from sklearn.metrics import accuracy_score
 # - Brainstorm ideas for own research
  
 # Function that calls the underlying functions for running the NN
-def testDataset(train, test):
+def testDataset(train, test, iterations):
     #x_train, x_test, y_train, y_test = scaleSplitData(df)
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
-    models = getMLPModels()
+    models = getMLPModels(iterations)
     predictions = fitModels(models, x_train, x_test, y_train, y_test)
     print("-------------------------------------------------------------------------------------------------------------")
 
     # Returning the prediction for the age and distance datasets
     return predictions
 
-# Function that first splits the data into four equal lengths
+# Function that defines the testing/training dataset and splits those into independent and the dependent variable
 # Then it scales the data with a standard scaler
 # Then it returns the split and scaled data
-def scaleSplitData(df):
-    x = df.drop('Eligibility', axis = 1)
-    y = df['Eligibility']
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=2000/4400)
-
-    stdScaler = StandardScaler()
-    stdScaler.fit(x_train)
-    StandardScaler(copy = True, with_mean = True, with_std = True)
-    x_train = stdScaler.transform(x_train)
-    x_test = stdScaler.transform(x_test)
-
-    return (x_train, x_test, y_train, y_test)
-
 def manualScaleSplit(train, test):
     x_train = train.drop('Eligibility', axis = 1)
     x_test = test.drop('Eligibility', axis = 1)
@@ -64,13 +51,13 @@ def manualScaleSplit(train, test):
 
 # Function that creates the three classifiers as mentioned in the paper
 # The classifiers have a lot of parameters that can be played around with
-def getMLPModels():
+def getMLPModels(iterations):
     models = []
 
     # Data is already shuffled
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = 5000, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = 5000, activation = 'logistic', shuffle = False))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = 5000, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', shuffle = False))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', shuffle = False))
 
     return models
 
@@ -89,13 +76,8 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         print(confusion_matrix(y_test, predict))
         print("accuracy score:")
         print(accuracy_score(y_test, predict))
-
-        # print("Classification report:")
-        # print(classification_report(y_test, predict))
-
         predicts.append(predict)
 
-    # fix that you actually return the three different predicts not just the last one
     return predicts
 
 if __name__ == "__main__":

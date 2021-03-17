@@ -8,12 +8,15 @@ import matplotlib.pyplot as plt
 
 TESTING_DATA_POINTS = 1000
 TRAINING_DATA_POINTS = 1200
+MAX_ITERATIONS = 5000
+
+# Age data set generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
 # TODO:
 # - Should this be 4400 datapoints that all fail on the age condition
 # Or 2200 datapoints that fail on the age condition and 2200 datapoints that are perfect?
-# - Should the age in the training data sets always be in steps of 5?
-# - Fix that the resulting graph splits men and women if that matters
+# - Average men/women data over the three nets for figure 3? Or only over the first two nets? Or one of the three? 
+# - Are the graphs correct? (Correct enough?)
 
 def main():
     print("Generating training/testing data for the neural network")
@@ -28,13 +31,13 @@ def main():
     ageDataset = editDataset(ageDataset)
 
     print("Training on multiple fail, testing on age dataset")
-    mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset)
+    mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)
     print("Training on single fail, testing on age dataset")
-    sfPredictions = setNN.testDataset(singleFailTrain, ageDataset)
+    sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)
 
     print("Making graphs for the age dataset")
-    makeAgeGraph(ageDataset, mfPredictions, "MultipleFailAgeResult")
-    makeAgeGraph(ageDataset, sfPredictions, "SingleFailAgeResult")
+    makeAgeGraphSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
+    makeAgeGraphFullSplit(ageDataset, sfPredictions, "SingleFailTrainFullSplit - Figure 3")
 
 def editDataset(df):
     df = dataGen.checkEligibility(df)
@@ -70,20 +73,92 @@ def failAgeCondition(df):
 
     return df
 
+def makeAgeGraphFullSplit(test, predictions, name):
+    legend = ["Women", "Men"]
+
+    for p in [0,1]:
+        countArr = [0 for i in range(101)]; countArr = countArr[::5]
+        eligArr = [0 for i in range(101)]; eligArr = eligArr[::5]
+        resultArr = [0 for i in range(101)]; resultArr = resultArr[::5]
+        for j, predict in enumerate(predictions):
+            for i in range(len(test.Age)):
+                if test.loc[i, "Gender"] == p: 
+                    age = test.loc[i, "Age"]
+                    eligArr[int(age/5)] += predict[i]
+                    countArr[int(age/5)] += 1
+            
+            for i in range(len(eligArr)):
+                if countArr[i] == 0:
+                    continue
+                else:
+                    resultArr[i] += eligArr[i]/countArr[i]
+        
+        resultArr = [i/3 for i in resultArr]
+        plt.grid()
+        if p == 0:
+            plt.plot(list(range(0, 105, 5)), resultArr, '--', color = 'red', linewidth = 1.0)
+        else:
+            plt.plot(list(range(0, 105, 5)), resultArr, color = 'blue', linewidth = 1.0)
+
+    plt.legend(legend)
+    plt.ylabel('Output') 
+    plt.xlabel('Age')
+    plt.grid()
+    plt.title(name)
+    plt.savefig('Data/age/' + name + '.png')
+    plt.clf()
+
+def makeAgeGraphSplit(test, predictions, name):
+    legend = ["1 Hidden Layer - men", "1 Hidden Layer - women", "2 Hidden Layers - men", "2 Hidden Layers - women", "3 Hidden Layers - men", "3 Hidden Layers - women"]
+    colours = ['green', 'red', 'blue']
+
+    for p in [0,1]:
+        for j, predict in enumerate(predictions):
+            countArr = [0 for i in range(101)]; countArr = countArr[::5]
+            eligArr = [0 for i in range(101)]; eligArr = eligArr[::5]
+            resultArr = []
+
+            for i in range(len(test.Age)):
+                if test.loc[i, "Gender"] == p: 
+                    age = test.loc[i, "Age"]
+                    eligArr[int(age/5)] += predict[i]
+                    countArr[int(age/5)] += 1
+            
+            for i in range(len(eligArr)):
+                if countArr[i] == 0:
+                    resultArr.append(0)
+                else:
+                    resultArr.append(eligArr[i]/countArr[i])
+            
+            plt.grid()
+            if p == 0:
+                plt.plot(list(range(0, 105, 5)), resultArr, '--', color = colours[j], linewidth = 1.0)
+            else:
+                plt.plot(list(range(0, 105, 5)), resultArr, color = colours[j], linewidth = 1.0)
+
+    plt.legend(legend)
+    plt.ylabel('Output') 
+    plt.xlabel('Age')
+    plt.grid()
+    plt.title(name)
+    plt.savefig('Data/age/' + name + '.png')
+    plt.clf()
+
+# Obsolete function
 def makeAgeGraph(test, predictions, name):
     legend = ["1 Hidden Layer", "2 Hidden layers", "3 Hidden Layers"]
     colours = ['green', 'red', 'blue']
 
     for j, predict in enumerate(predictions):
         # Creating a tuple list, which keeps track of what eligibility score it was given and the amount of times an age has occured
-        countArr = [0 for i in range(101)]
-        eligArr = [0 for i in range(101)]
+        countArr = [0 for i in range(101)]; countArr = countArr[::5]
+        eligArr = [0 for i in range(101)]; eligArr = eligArr[::5]
         resultArr = []
 
         for i in range(len(test.Age)):
             age = test.loc[i, "Age"]
-            eligArr[age] += predict[i]
-            countArr[age] += 1
+            eligArr[int(age/5)] += predict[i]
+            countArr[int(age/5)] += 1
         
         for i in range(len(eligArr)):
             if countArr[i] == 0:
@@ -91,12 +166,8 @@ def makeAgeGraph(test, predictions, name):
             else:
                 resultArr.append(eligArr[i]/countArr[i])
 
-        # Temproary solution, until it is clear if the age should increase by steps of 5 in the training datasets as well
-        resultArr = resultArr[::5]
-        resultArr.pop(0)
-
         plt.grid()
-        plt.plot(list(range(0, 100, 5)), resultArr, color = colours[j], linewidth = 1.0)
+        plt.plot(list(range(0, 105, 5)), resultArr, color = colours[j], linewidth = 1.0)
 
     plt.legend(legend)
     plt.ylabel('Output') 
