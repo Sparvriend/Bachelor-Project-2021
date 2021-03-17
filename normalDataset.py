@@ -16,13 +16,15 @@ def main():
     multipleFailTest = dataGen.initData(6, TESTING_DATA_POINTS, 'TEST', 'Data/normal/normalDatasetPreProcessed6')
     
     print("Training on multiple fail, testing on multiple fail")
-    setNN.testDataset(multipleFailTrain, multipleFailTest, MAX_ITERATIONS)
+    acc1 = setNN.testDataset(multipleFailTrain, multipleFailTest, MAX_ITERATIONS)[1]
     print("Training on multiple fail, testing on single fail")
-    setNN.testDataset(multipleFailTrain, singleFailTest, MAX_ITERATIONS)
+    acc2 = setNN.testDataset(multipleFailTrain, singleFailTest, MAX_ITERATIONS)[1]
     print("Training on single fail, testing on multiple fail")
-    setNN.testDataset(singleFailTrain, multipleFailTest, MAX_ITERATIONS)
+    acc3 = setNN.testDataset(singleFailTrain, multipleFailTest, MAX_ITERATIONS)[1]
     print("Training on single fail, testing on single fail")
-    setNN.testDataset(singleFailTrain, singleFailTest, MAX_ITERATIONS)
+    acc4 = setNN.testDataset(singleFailTrain, singleFailTest, MAX_ITERATIONS)[1]
+
+    return (acc1, acc2, acc3, acc4)
 
 if __name__ == "__main__":
     main()

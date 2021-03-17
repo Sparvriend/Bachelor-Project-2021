@@ -19,13 +19,8 @@ MAX_ITERATIONS = 3000
 def main():
     print("Generating training/testing data for the neural network")
 
-    # Testing dataset with 50/50 split
-    # ageDataset = failAgeCondition(dataGen.generatePerfectData(TESTING_DATA_POINTS))
-
     # Testing dataset with 37.5% split as is hinted at in the paper
-    ageDataset = generateNewAge(dataGen.generatePerfectData(TESTING_DATA_POINTS))
-    ageDataset = pd.concat([dataGen.generatePerfectData(TESTING_DATA_POINTS), ageDataset], axis = 0, ignore_index=True)
-    ageDataset = dataGen.modifyData(ageDataset, TESTING_DATA_POINTS, 'TEST', 'Data/age/ageDatasetPreProcessed')
+    ageDataset = dataGen.modifyData(generateNewAge(dataGen.generatePerfectData(TESTING_DATA_POINTS*2)), TESTING_DATA_POINTS, 'TEST', 'Data/age/ageDatasetPreProcessed')
 
     # Generating the two training datasets
     singleFailTrain = dataGen.initData(1, TRAINING_DATA_POINTS, 'TRAIN', 'Data/age/ageDatasetPreprocessed1')
@@ -33,9 +28,9 @@ def main():
 
     # Testing
     print("Training on multiple fail, testing on age dataset")
-    mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)
+    mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)[0]
     print("Training on single fail, testing on age dataset")
-    sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)
+    sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)[0]
 
     # Making the graphs
     print("Making graphs for the age dataset")
@@ -44,7 +39,7 @@ def main():
 
 def generateNewAge(df):
     for i in range(len(df.Age)):
-        df.loc[i, "Age"] = random.choice(list(range(0, 100, 5)))
+        df.loc[i, "Age"] = random.choice(list(range(0, 105, 5)))
     return df
 
 # Failing on age conditions with steps of 5 for the age

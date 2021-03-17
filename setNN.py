@@ -23,11 +23,11 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 def testDataset(train, test, iterations):
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     models = getMLPModels(iterations)
-    predictions = fitModels(models, x_train, x_test, y_train, y_test)
+    predictions, accuracies = fitModels(models, x_train, x_test, y_train, y_test)
     print("-------------------------------------------------------------------------------------------------------------")
 
     # Returning the prediction for the age and distance datasets
-    return predictions
+    return (predictions, accuracies)
 
 # Function that defines the testing/training dataset and splits those into independent and the dependent variable
 # Then it scales the data with a standard scaler
@@ -60,17 +60,19 @@ def getMLPModels(iterations):
 # It also prints a simple statistical analysis of the data as well as a confusion matrix
 def fitModels(models, x_train, x_test, y_train, y_test):
     predicts = []
+    accuracies = []
 
     for model in models:
         model.fit(x_train, y_train)
         predict = model.predict(x_test)
-
+        accuracy = accuracy_score(y_test, predict)
         print(model)
         #print("Confusion matrix:\n" + confusion_matrix(y_test, predict))
-        print("Accuracy score:\n" + str(accuracy_score(y_test, predict)))
+        print("Accuracy score:\n" + str(accuracy))
         predicts.append(predict)
+        accuracies.append(accuracy)
 
-    return predicts
+    return (predicts, accuracies)
 
 if __name__ == "__main__":
     main()

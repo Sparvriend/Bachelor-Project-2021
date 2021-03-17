@@ -20,7 +20,7 @@ def main():
 
     # Training/testing with the neural net
     print("Training on single fail, testing on distance dataset")
-    sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)
+    sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
 
     # Graphing results
     print("Making graph for the distance dataset")
