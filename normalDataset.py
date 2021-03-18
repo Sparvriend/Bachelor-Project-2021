@@ -5,6 +5,7 @@ import setNN
 TESTING_DATA_POINTS = 1000
 TRAINING_DATA_POINTS = 1200
 MAX_ITERATIONS = 3000
+# Try 50000
 
 # Normal data set generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
 

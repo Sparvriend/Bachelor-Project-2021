@@ -18,6 +18,8 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 # - Add the printFailOn to the report for a nice overview in the results section
 # - Brainstorm ideas for own research
 # - Code in PEP8
+# - Play with parameters
+# - Learning rate 0.001, max iterations 50000
  
 # Function that calls the underlying functions for running the NN
 def testDataset(train, test, iterations):
@@ -50,9 +52,9 @@ def getMLPModels(iterations):
     models = []
 
     # Data is already shuffled
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.025, batch_size = 100))
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
 
     return models
 

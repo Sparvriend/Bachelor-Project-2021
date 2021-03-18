@@ -14,7 +14,8 @@ MAX_ITERATIONS = 3000
 
 # TODO:
 # - Average men/women data over the three nets for figure 3? Or only over the first two nets? Or one of the three? 
-# - Are the graphs correct? (Correct enough?)
+# - 3 plots for three different nets
+# - Men women 50/50 split exact
 
 def main():
     print("Generating training/testing data for the neural network")

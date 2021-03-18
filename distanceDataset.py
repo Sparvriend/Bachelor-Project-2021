@@ -26,6 +26,8 @@ def main():
     print("Making graph for the distance dataset")
     makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
 
+    return (sfPredictions, distanceDataset)
+
 # Resetting the age to a value which can fail
 def addFail(df):
     for i in range(len(df.Age)):
@@ -62,6 +64,9 @@ def makeDistanceGraph(test, predictions, name):
         else:
             plt.plot(list(range(0, 101)), resultArr, '--', color = 'blue', linewidth = 1.0)
 
+    finalizeGraph(legend, name)
+
+def finalizeGraph(legend, name):
     plt.legend(legend)
     plt.ylabel('Output') 
     plt.xlabel('Distance')
