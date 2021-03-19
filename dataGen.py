@@ -243,7 +243,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
                 continue
 
             if rand == 4:
-                df.loc[i, "Resource"] = random.choice(list(range(3001, 3500)))
+                df.loc[i, "Resource"] = random.choice(list(range(3001, 6000)))
                 continue
 
             if rand == 5:
