@@ -8,32 +8,25 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 # Neural network setup Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
 # Neural network: 1/2/3 hidden layers (or more) with various shapes (paper used triangular) using back propogation
-# Neural networks from paper:
-# One hidden layer: 64 node input + 1 hidden layer with 12 nodes + 1 output layer with 1 node
-# Two hidden layer: 64 node input + 1 hidden layer with 24 nodes + 1 hidden layer with 6 nodes + 1 ouput layer with 1 node
-# Three hidden layer: 64 node input + 1 hidden layer with 24 nodes + 1 hidden layer with 10 nodes + 1 hidden layer with 3 nodes + 1 output layer with 1 node
-
-# TODO:
-# - Play around with parameters to get the same accuracies as in the paper
-# - Add the printFailOn to the report for a nice overview in the results section
-# - Brainstorm ideas for own research
-# - Code in PEP8
-# - Play with parameters
-# - Learning rate 0.001, max iterations 50000
+# Directly copied from the paper, as mentioned in dataGen
+# Setting the iterations to higher values does not result in higher accuracies
+# Changing the solver/learning rate/activation does not improve the accuracy w.r.t the paper accuracies
+# Increasing test/train dataset sizes increases accuracies, but diminishes the results from the paper
+# For example result 2 has much too high accuracies when increasing the dataset sizes
  
 # Function that calls the underlying functions for running the NN
+# test/training datasets are manually split to have the right test/train sets
 def testDataset(train, test, iterations):
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     models = getMLPModels(iterations)
     predictions, accuracies = fitModels(models, x_train, x_test, y_train, y_test)
     print("-------------------------------------------------------------------------------------------------------------")
 
-    # Returning the prediction for the age and distance datasets
+    # Returning the prediction, used for the age and distance datasets
     return (predictions, accuracies)
 
 # Function that defines the testing/training dataset and splits those into independent and the dependent variable
-# Then it scales the data with a standard scaler
-# Then it returns the split and scaled data
+# Then it scales the data with a standard scaler and then returns the split and scaled data
 def manualScaleSplit(train, test):
     x_train = train.drop('Eligibility', axis = 1); x_test = test.drop('Eligibility', axis = 1)
     y_train = train['Eligibility']; y_test = test['Eligibility']
@@ -46,20 +39,19 @@ def manualScaleSplit(train, test):
 
     return (x_train, x_test, y_train, y_test)
 
-# Function that creates the three classifiers as mentioned in the paper
-# The classifiers have a lot of parameters that can be played around with
+# Function that creates the three MLP classifiers as mentioned in the paper
+# The activation is set to logistic as relu did not have traction yet in 1993, other parameters are set based on optimality
 def getMLPModels(iterations):
     models = []
 
-    # Data is already shuffled
-    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.05, batch_size = 50))
+    models.append(MLPClassifier(hidden_layer_sizes=(12), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.001, batch_size = 50))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 6), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.001, batch_size = 50))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), max_iter = iterations, activation = 'logistic', learning_rate_init = 0.001, batch_size = 50))
 
     return models
 
 # Function that fits the models to the test data
-# It also prints a simple statistical analysis of the data as well as a confusion matrix
+# It prints analysis data, as well as returning that data
 def fitModels(models, x_train, x_test, y_train, y_test):
     predicts = []
     accuracies = []
@@ -69,7 +61,6 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         predict = model.predict(x_test)
         accuracy = accuracy_score(y_test, predict)
         print(model)
-        #print("Confusion matrix:\n" + confusion_matrix(y_test, predict))
         print("Accuracy score:\n" + str(accuracy))
         predicts.append(predict)
         accuracies.append(accuracy)

@@ -2,18 +2,16 @@ import pandas as pd
 import random
 
 # Constant for the in out patient distance, measured in km
+# This is copied directly from the paper
 IN_OUT_PATIENT_DISTANCE = 50
 NOISE_VARIABLES = 52
     
 # Data generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
-# The paper that is constantly mentioned in this file:
+# The paper that is constantly mentioned in this file and relates to the other replication files:
 # https://dl.acm.org/doi/abs/10.1145/158976.159012?casa_token=cTqiK-PMwnEAAAAA:KtSh_D8f5J3cV4sqSH3qyKG-XhHAb28hNt0au51BNDl4VdSQQ6aKp1W_baNu2aJ6O7LPL1YbOhhX
 
-# This function is used to generate the two datasets; one consisting of perfect datapoints
-# and the other consisting of imperfect datapoints (for eligbility)
-# As a parameter, the maximum amount of conditions that can be failed on are given to the function
-# For the singular fail condition this is 1, while it is 6 for the multiple fail condition
-# The function also calculates the eligibility percentage (should be 50%)
+# This function initializes data generation
+# It is used for the normal dataset, 50% of the dataset is eligible, the other 50% is ineligible based on the number of fail conditions
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail], axis = 0, ignore_index=True)
@@ -21,6 +19,8 @@ def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
 
     return tf
 
+# This function modifies the data, it adds the eligibility column as well as the noise variables
+# Followed by preprocessing
 def modifyData(tf, DATA_POINTS, TYPE, LOC):
     eligibilityResult = checkEligibility(tf)
     tf = eligibilityResult[0]
@@ -28,7 +28,6 @@ def modifyData(tf, DATA_POINTS, TYPE, LOC):
     # calcEligibilityPerc(tf)
     # printFailOn(eligibilityResult[1], DATA_POINTS)
 
-    # Adding noise variables then preprocessing
     tf = pd.concat([tf, generateNoiseData(DATA_POINTS)], axis = 1)
     tf = preprocessData(tf)
     tf.to_excel(str(LOC) + str(TYPE) + '.xlsx')
@@ -36,6 +35,7 @@ def modifyData(tf, DATA_POINTS, TYPE, LOC):
     return tf
 
 # Function that shows what rules caused the patients to not receive the welfare benefit
+# Can be used for any dataset
 def printFailOn(data, DATA_POINTS):
     for i in range(len(data)):
         print(data[i], "of the patients failed on rule", i+1, "out of the total", DATA_POINTS*2)
@@ -57,9 +57,6 @@ def generateNoiseData(DATA_POINTS):
     return df
 
 # Preprocessing data such that the Residency, Spouse, InOut and Gender variables are all converted to numerical booleans
-# 0 = No, 1 = Yes
-# 0 = Out, 1 = In
-# 0 = Female, 1 = Male
 # This function can also easily be converted, so that the data already comes out as numerical in the initial data generation
 def preprocessData(df):
     for i in range(len(df.Age)):
@@ -85,6 +82,7 @@ def preprocessData(df):
 
     return df
 
+# Generating numerical data, based on a list of values that can be chosen from, the step variable is optional
 def generateNumerical(min, max, DATA_POINTS, step = 1):
     sample = list(range(min, max+1, step))
     data = []
@@ -93,6 +91,7 @@ def generateNumerical(min, max, DATA_POINTS, step = 1):
 
     return data
 
+# Generating boolean data, based on a value list
 def generateBoolean(valueList, DATA_POINTS):
     data = []
     for i in range(DATA_POINTS):
@@ -101,12 +100,10 @@ def generateBoolean(valueList, DATA_POINTS):
     return data
 
 # Function that generates a list of size DATA_POINTS
-# All variables in the list are uniformly distributed
-# Each datapoint in the list has size 12, including numerical values and boolean values
 # All datapoints in the list are eligible
 def generatePerfectData(DATA_POINTS):
 
-    # Generating numerical data:
+    # Generating numerical data
     ageData       = generateNumerical(60,100, DATA_POINTS, 5)
     resourceData  = generateNumerical(0, 3000, DATA_POINTS)
     distData      = generateNumerical(0, 100, DATA_POINTS)
@@ -118,7 +115,7 @@ def generatePerfectData(DATA_POINTS):
     contrData4    = generateNumerical(1, 1, DATA_POINTS)
     contrData5    = generateNumerical(1, 1, DATA_POINTS)
 
-    # Generating boolean data:
+    # Generating boolean data
     # To avoid preprocessing, these should be changed to numerical
     residencyData = generateBoolean(["Yes"], DATA_POINTS)
     spouseData    = generateBoolean(["Yes"], DATA_POINTS)
@@ -131,7 +128,7 @@ def generatePerfectData(DATA_POINTS):
            'Contribution1': contrData1, 'Contribution2': contrData2, 'Contribution3': contrData3, 'Contribution4': contrData4, 'Contribution5': contrData5}
     df = pd.DataFrame(data = dat)
 
-    # Correcting potential issues in the otherwise perfect dataset
+    # Ensuring that the dataset is perfect
     for i in range(len(df.Age)):
         if(df.loc[i, "Gender"] == "Male" and df.loc[i, "Age"] < 65):
             df.loc[i, "Age"] = random.choice(list(range(65, 100, 5)))
@@ -146,6 +143,8 @@ def generatePerfectData(DATA_POINTS):
 
 # This function checks the eligibility of each row in the dataframe
 # It checks if each of the six rules are correct or not
+# It returns the same dataframe with an added column for eligibility
+# It also returns a list which shows how many cases failed on which rules
 def checkEligibility(df):
     eligibility = []
     eligibilityVal = 1

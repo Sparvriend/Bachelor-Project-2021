@@ -12,32 +12,26 @@ MAX_ITERATIONS = 3000
 
 # Age data set generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
-# TODO:
-# - Average men/women data over the three nets for figure 3? Or only over the first two nets? Or one of the three? 
-# - 3 plots for three different nets
-# - Men women 50/50 split exact
-
 def main():
-    print("Generating training/testing data for the neural network")
 
-    # Testing dataset with 37.5% split as is hinted at in the paper
+    # Testing dataset with 37.5% eligibility, as is hinted at in the paper
+    print("Generating training/testing data for the neural network")
     ageDataset = dataGen.modifyData(generateNewAge(dataGen.generatePerfectData(TESTING_DATA_POINTS*2)), TESTING_DATA_POINTS, 'TEST', 'Data/age/ageDatasetPreProcessed')
 
     # Generating the two training datasets
     singleFailTrain = dataGen.initData(1, TRAINING_DATA_POINTS, 'TRAIN', 'Data/age/ageDatasetPreprocessed1')
     multipleFailTrain = dataGen.initData(6, TRAINING_DATA_POINTS, 'TRAIN', 'Data/age/ageDatasetPreprocessed6')
 
-    # Testing
-    print("Training on multiple fail, testing on age dataset")
-    mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)[0]
-    print("Training on single fail, testing on age dataset")
-    sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)[0]
+    # Testing on the neural networks
+    print("Training on multiple fail, testing on age dataset"); mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)[0]
+    print("Training on single fail, testing on age dataset"); sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)[0]
 
-    # Making the graphs
+    # Making the graphs, as from the paper (figure 2 and 3)
     print("Making graphs for the age dataset")
-    makeAgeGraphSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
+    makeAgeGraphNNSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
     makeAgeGraphFullSplit(ageDataset, sfPredictions, "SingleFailTrainFullSplit - Figure 3")
 
+# Function that generates a new age value, from 0-105, with steps of 5
 def generateNewAge(df):
     for i in range(len(df.Age)):
         df.loc[i, "Age"] = random.choice(list(range(0, 105, 5)))
@@ -56,7 +50,7 @@ def failAgeCondition(df):
 
     return df
 
-# Making graphs for the age predictions, which are fully split in the paper between gender
+# Making a graph for the age predictions, which are fully split in the paper between gender (figure 3)
 def makeAgeGraphFullSplit(test, predictions, name):
     legend = ["Women", "Men"]
 
@@ -88,12 +82,14 @@ def makeAgeGraphFullSplit(test, predictions, name):
 
     finalizeGraph(legend, name)
 
-def makeAgeGraphSplit(test, predictions, name):
-    legend = ["1 Hidden Layer - women", "2 Hidden Layers - women", "3 Hidden Layers - women", "1 Hidden Layer - men", "2 Hidden Layers - men", "3 Hidden Layers - men"]
-    colours = ['green', 'red', 'blue']
+# Making a graph for the three neural network results on the age dataset (figure 2, but split in three figures in this case)
+def makeAgeGraphNNSplit(test, predictions, name):
+    neuralNets = ["1 Hidden Layer", "2 Hidden Layers", "3 Hidden Layers"]
+    colours = ['red', 'blue']
+    legend = ['Women', 'Men']
 
-    for p in [0,1]:
-        for j, predict in enumerate(predictions):
+    for j, predict in enumerate(predictions):
+        for p in [0,1]:
             countArr = [0 for i in range(101)]; countArr = countArr[::5]
             eligArr = countArr.copy()
             resultArr = []
@@ -109,15 +105,15 @@ def makeAgeGraphSplit(test, predictions, name):
                     resultArr.append(0)
                 else:
                     resultArr.append(eligArr[i]/countArr[i])
-            
+
             plt.grid()
             if p == 0:
-                plt.plot(list(range(0, 105, 5)), resultArr, '--', color = colours[j], linewidth = 1.0)
+                plt.plot(list(range(0, 105, 5)), resultArr, '--', color = colours[p], linewidth = 1.0)
             else:
-                plt.plot(list(range(0, 105, 5)), resultArr, color = colours[j], linewidth = 1.0)
+                plt.plot(list(range(0, 105, 5)), resultArr, color = colours[p], linewidth = 1.0)
+        finalizeGraph(legend, name + " - " + str(neuralNets[j]))    
 
-    finalizeGraph(legend, name)
-
+# Function that finalizes a graph (adding legend/labels etc)
 def finalizeGraph(legend, name):
     plt.legend(legend)
     plt.ylabel('Output') 

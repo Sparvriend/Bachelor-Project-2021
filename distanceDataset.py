@@ -10,22 +10,23 @@ TESTING_DATA_POINTS = 1000
 TRAINING_DATA_POINTS = 1200
 MAX_ITERATIONS = 3000
 
+# Distance data set generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
+
 def main():
-    print("Generating training/testing data for the neural network")
     # Generating testing data, testing data points *2 because it is altered in its entirity later
+    print("Generating training/testing data for the neural network")
     distanceDataset = dataGen.modifyData(addFail(dataGen.generatePerfectData(TESTING_DATA_POINTS*2)), TESTING_DATA_POINTS, 'TEST', 'Data/distance/distanceDatasetPreprocessed')
 
     # Generating training data
     singleFailTrain = dataGen.initData(1, TRAINING_DATA_POINTS, 'TRAIN', 'Data/distance/distanceDatasetPreprocessed1')
 
     # Training/testing with the neural net
-    print("Training on single fail, testing on distance dataset")
-    sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
+    print("Training on single fail, testing on distance dataset"); sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
 
     # Graphing results
-    print("Making graph for the distance dataset")
-    makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
+    print("Making graph for the distance dataset"); makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
 
+    # Returning the results, which is used for averageing over multiple runs
     return (sfPredictions, distanceDataset)
 
 # Resetting the age to a value which can fail
@@ -35,6 +36,7 @@ def addFail(df):
 
     return df
 
+# Distance graph generation
 def makeDistanceGraph(test, predictions, name):
     legend = ["out-patients", "in-patients"]
 

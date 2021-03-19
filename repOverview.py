@@ -8,15 +8,19 @@ import matplotlib.pyplot as plt
 
 iterations = 20
 
+# Replication overview Python file made for the Bachelor Project by Timo Wahl (s3812030)
+# This file is used to average over multiple data set runs and print the accuracies/graphs over those runs
+
 # TODO:
-# - implement age graph averaging
-# - implement option to remove third NN from running the distance dataset, as it has very bad performance (<60), but only sometimes?
-# - Remove graph making/accuracy measuring from the dataset files, such that it can be used here when the itertions is set to 1.
+# - implement age graph averaging (runAgeDataset())
 
 def main():
     #runNormalDataset()
     runDistanceDataset()
+    #runAgeDataset()
 
+# Function that runs the distance dataset multiple times
+# It averages the results over the amount of iterations and then prints the result
 def runDistanceDataset():
     legend = ["out-patients", "in-patients"]
     name = "singleFailDistance averaged over " + str(iterations) +  " iterations - Figure 4"
@@ -44,8 +48,7 @@ def runDistanceDataset():
     plt.plot(list(range(0, 101)), resultArrIn, '--', color = 'blue', linewidth = 1.0)
     distanceDataset.finalizeGraph(legend, name)
 
-def runAgeDataset():
-
+# Function that runs the normal dataset multiple times
 def runNormalDataset():
     final = [[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
     genPrints = ["Training on multiple fail, testing on multiple fail final result", "Training on multiple fail, testing on single fail final result",
