@@ -18,16 +18,19 @@ def main():
     distanceDataset = dataGen.modifyData(addFail(dataGen.generatePerfectData(TESTING_DATA_POINTS*2)), TESTING_DATA_POINTS, 'TEST', 'Data/distance/distanceDatasetPreprocessed')
 
     # Generating training data
-    singleFailTrain = dataGen.initData(1, TRAINING_DATA_POINTS, 'TRAIN', 'Data/distance/distanceDatasetPreprocessed1')
+    singleFailTrain = dataGen.initData(1, TRAINING_DATA_POINTS, 'TRAIN', 'Data/distance/distanceDatasetPreprocessedSF')
+    multipleFailTrain = dataGen.initData(6, TRAINING_DATA_POINTS, 'TRAIN', 'Data/distance/distanceDatasetPreprocessedMF')
 
     # Training/testing with the neural net
     print("Training on single fail, testing on distance dataset"); sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
+    print("Training on multiple fail, testing on distance dataset"); mfPredictions = setNN.testDataset(multipleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
 
     # Graphing results
-    print("Making graph for the distance dataset"); makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
+    print("Making graph for the distance dataset single fail"); makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
+    print("Making graph for the distance dataset multiple fail"); makeDistanceGraph(distanceDataset, mfPredictions, "multipleFailDistance - Figure X")
 
-    # Returning the results, which is used for averageing over multiple runs
-    return (sfPredictions, distanceDataset)
+    # Returning the results, which is used for averaging over multiple runs
+    return (sfPredictions, mfPredictions, distanceDataset)
 
 # Resetting the age to a value which can fail
 def addFail(df):

@@ -3,6 +3,7 @@ import dataGen
 import setNN
 import random
 import matplotlib
+import numpy as np
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -28,8 +29,10 @@ def main():
 
     # Making the graphs, as from the paper (figure 2 and 3)
     print("Making graphs for the age dataset")
-    makeAgeGraphNNSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
-    makeAgeGraphFullSplit(ageDataset, sfPredictions, "SingleFailTrainFullSplit - Figure 3")
+    femOutMF, MalOutMF = makeAgeGraphNNSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
+    femOutSF, MalOutSF = makeAgeGraphFullSplit(ageDataset, sfPredictions, "SingleFailTrainFullSplit - Figure 3")
+
+    return (femOutMF, MalOutMF, femOutSF, MalOutSF)
 
 # Function that generates a new age value, from 0-105, with steps of 5
 def generateNewAge(df):
@@ -52,7 +55,7 @@ def failAgeCondition(df):
 
 # Making a graph for the age predictions, which are fully split in the paper between gender (figure 3)
 def makeAgeGraphFullSplit(test, predictions, name):
-    legend = ["Women", "Men"]
+    legend = ["Women", "Men"]; outF = []; outM = []
 
     for p in [0,1]:
         countArr = [0 for i in range(101)]; countArr = countArr[::5]
@@ -77,14 +80,18 @@ def makeAgeGraphFullSplit(test, predictions, name):
         plt.grid()
         if p == 0:
             plt.plot(list(range(0, 105, 5)), resultArr, '--', color = 'red', linewidth = 1.0)
+            outF = resultArr
         else:
             plt.plot(list(range(0, 105, 5)), resultArr, color = 'blue', linewidth = 1.0)
+            outM = resultArr
 
     finalizeGraph(legend, name)
 
+    return (outF, outM)
+
 # Making a graph for the three neural network results on the age dataset (figure 2, but split in three figures in this case)
 def makeAgeGraphNNSplit(test, predictions, name):
-    neuralNets = ["1 Hidden Layer", "2 Hidden Layers", "3 Hidden Layers"]
+    neuralNets = ["1 Hidden Layer", "2 Hidden Layers", "3 Hidden Layers"]; outM = np.zeros((3, 0)).tolist(); outF = np.zeros((3, 0)).tolist()
     colours = ['red', 'blue']
     legend = ['Women', 'Men']
 
@@ -109,9 +116,13 @@ def makeAgeGraphNNSplit(test, predictions, name):
             plt.grid()
             if p == 0:
                 plt.plot(list(range(0, 105, 5)), resultArr, '--', color = colours[p], linewidth = 1.0)
+                outF[j].append(resultArr)
             else:
                 plt.plot(list(range(0, 105, 5)), resultArr, color = colours[p], linewidth = 1.0)
-        finalizeGraph(legend, name + " - " + str(neuralNets[j]))    
+                outM[j].append(resultArr)
+        finalizeGraph(legend, name + " - " + str(neuralNets[j]))
+
+    return (outF, outM)    
 
 # Function that finalizes a graph (adding legend/labels etc)
 def finalizeGraph(legend, name):
