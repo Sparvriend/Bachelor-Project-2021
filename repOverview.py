@@ -7,8 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-iterations = 2
-
+iterations = 100
 TESTING_DATA_POINTS = 1000
 TRAINING_DATA_POINTS = 1200
 
@@ -20,7 +19,7 @@ TRAINING_DATA_POINTS = 1200
 
 def main():
     #runNormalDataset()
-    runDistanceDataset()
+    #runDistanceDataset()
     #runAgeDataset()
 
 def getAvgAccuracy(sf, mf):
@@ -29,7 +28,7 @@ def getAvgAccuracy(sf, mf):
 
     final = [[0,0,0],[0,0,0]]
     for i in range(iterations):
-        for j, accuracy in enumerate(sf[i]):
+        for j in range(len(sf[i])):
             final[0][j] += sf[i][j]
             final[1][j] += mf[i][j]
 
@@ -53,8 +52,8 @@ def runAgeDataset():
 
     for i in range(iterations):
         result = ageDataset.main()
-        accTotalSF.append(result[3])
-        accTotalMF.append(result[4])
+        accTotalSF.append(result[4])
+        accTotalMF.append(result[5])
         fullSplit = []; fullSplit.append(result[2]); fullSplit.append(result[3])
         for j in range(3):
             for p in [0,1]:
