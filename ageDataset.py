@@ -24,15 +24,17 @@ def main():
     multipleFailTrain = dataGen.initData(6, TRAINING_DATA_POINTS, 'TRAIN', 'Data/age/ageDatasetPreprocessed6')
 
     # Testing on the neural networks
-    print("Training on multiple fail, testing on age dataset"); mfPredictions = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)[0]
-    print("Training on single fail, testing on age dataset"); sfPredictions = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)[0]
+    print("Training on multiple fail, testing on age dataset"); resSF = setNN.testDataset(singleFailTrain, ageDataset, MAX_ITERATIONS)
+    print("Training on single fail, testing on age dataset"); resMF = setNN.testDataset(multipleFailTrain, ageDataset, MAX_ITERATIONS)
+    sfPredictions = resSF[0]; acc1 = resSF[1]
+    mfPredictions = resMF[0]; acc2 = resMF[1]
 
     # Making the graphs, as from the paper (figure 2 and 3)
     print("Making graphs for the age dataset")
     femOutMF, MalOutMF = makeAgeGraphNNSplit(ageDataset, mfPredictions, "MultipleFailTrainSplit - Figure 2")
     femOutSF, MalOutSF = makeAgeGraphFullSplit(ageDataset, sfPredictions, "SingleFailTrainFullSplit - Figure 3")
 
-    return (femOutMF, MalOutMF, femOutSF, MalOutSF)
+    return (femOutMF, MalOutMF, femOutSF, MalOutSF, acc1, acc2)
 
 # Function that generates a new age value, from 0-105, with steps of 5
 def generateNewAge(df):

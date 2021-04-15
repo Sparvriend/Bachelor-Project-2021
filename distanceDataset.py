@@ -22,15 +22,17 @@ def main():
     multipleFailTrain = dataGen.initData(6, TRAINING_DATA_POINTS, 'TRAIN', 'Data/distance/distanceDatasetPreprocessedMF')
 
     # Training/testing with the neural net
-    print("Training on single fail, testing on distance dataset"); sfPredictions = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
-    print("Training on multiple fail, testing on distance dataset"); mfPredictions = setNN.testDataset(multipleFailTrain, distanceDataset, MAX_ITERATIONS)[0]
+    print("Training on single fail, testing on distance dataset"); resSF = setNN.testDataset(singleFailTrain, distanceDataset, MAX_ITERATIONS); 
+    print("Training on multiple fail, testing on distance dataset");resMF = setNN.testDataset(multipleFailTrain, distanceDataset, MAX_ITERATIONS); 
+    sfPredictions = resSF[0]; acc1 = resSF[1]
+    mfPredictions = resMF[0]; acc2 = resMF[1]
 
     # Graphing results
     print("Making graph for the distance dataset single fail"); makeDistanceGraph(distanceDataset, sfPredictions, "singleFailDistance - Figure 4")
     print("Making graph for the distance dataset multiple fail"); makeDistanceGraph(distanceDataset, mfPredictions, "multipleFailDistance - Figure X")
 
     # Returning the results, which is used for averaging over multiple runs
-    return (sfPredictions, mfPredictions, distanceDataset)
+    return (sfPredictions, mfPredictions, distanceDataset, acc1, acc2)
 
 # Resetting the age to a value which can fail
 def addFail(df):

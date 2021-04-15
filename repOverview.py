@@ -20,8 +20,24 @@ TRAINING_DATA_POINTS = 1200
 
 def main():
     #runNormalDataset()
-    #runDistanceDataset()
-    runAgeDataset()
+    runDistanceDataset()
+    #runAgeDataset()
+
+def getAvgAccuracy(sf, mf):
+    specPrints = ["Single layer neural network accuracy: ", "Double layer neural network accuracy: ", "Triple layer neural network accuracy: "]
+    typeOfNN = ["Trained on single fail, tested on distance dataset", "Trained on multiple fail, tested on distance dataset"]
+
+    final = [[0,0,0],[0,0,0]]
+    for i in range(iterations):
+        for j, accuracy in enumerate(sf[i]):
+            final[0][j] += sf[i][j]
+            final[1][j] += mf[i][j]
+
+    print("ITERATIONS: " + str(iterations))
+    for i, NNtype in enumerate(final):
+        print(typeOfNN[i])
+        for j, net in enumerate(NNtype):
+            print(specPrints[j] + str(net/iterations))
 
 # Function that runs the age dataset multiple times
 # It averages the results over the amount of iterations and then prints the result
@@ -30,11 +46,15 @@ def runAgeDataset():
     neuralNets = ["1 Hidden Layer", "2 Hidden Layers", "3 Hidden Layers"]
     colours = ['red', 'blue']
     legend = ['Women', 'Men']
+    accTotalSF = []
+    accTotalMF = []
 
     graphArr = np.zeros((2,3,21)).tolist(); graphArrFS = np.zeros((2,21)).tolist()
 
     for i in range(iterations):
         result = ageDataset.main()
+        accTotalSF.append(result[3])
+        accTotalMF.append(result[4])
         fullSplit = []; fullSplit.append(result[2]); fullSplit.append(result[3])
         for j in range(3):
             for p in [0,1]:
@@ -64,15 +84,22 @@ def runAgeDataset():
     plt.plot(list(range(0, 105, 5)), graphArrFS[1], color = colours[1], linewidth = 1.0)
     ageDataset.finalizeGraph(legend, "Single fail train, age test, all nets over " + str(iterations) + " iterations")
 
+    getAvgAccuracy(accTotalSF, accTotalMF)
+
 # Function that runs the distance dataset multiple times
 # It averages the results over the amount of iterations and then prints the result
 def runDistanceDataset():
     legend = ["out-patients", "in-patients"]
-    name = ["Single fail train, distance test, averaged over " + str(iterations) + " iterations", "Multiple fail train distance test averaged over " + str(iterations) + " iterations"]
+    name = ["Single fail train, distance test, averaged over " + str(iterations) + " iterations", "Multiple fail train, distance test, averaged over " + str(iterations) + " iterations"]
     totalResult = []
+    accTotalSF = []
+    accTotalMF = []
 
     for i in range(iterations):
         totalResult.append(distanceDataset.main())
+        accTotalSF.append(totalResult[i][3])
+        accTotalMF.append(totalResult[i][4])
+    getAvgAccuracy(accTotalSF, accTotalMF)
 
     for q in range(2):
         countArrOut = [0 for i in range(101)]; eligArrOut = countArrOut.copy(); resultArrOut = countArrOut.copy()
@@ -97,6 +124,7 @@ def runDistanceDataset():
         plt.plot(list(range(0, 101)), resultArrOut, color = 'red', linewidth = 1.0)
         plt.plot(list(range(0, 101)), resultArrIn, '--', color = 'blue', linewidth = 1.0)
         distanceDataset.finalizeGraph(legend, name[q])
+    
 
 # Function that runs the normal dataset multiple times
 def runNormalDataset():
