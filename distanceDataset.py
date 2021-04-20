@@ -78,7 +78,7 @@ def finalizeGraph(legend, name):
     plt.ylabel('Output') 
     plt.xlabel('Distance')
     plt.grid()
-    plt.title(name)
+    #plt.title(name)
     plt.savefig('Data/distance/' + name + '.png')
     plt.clf()
 

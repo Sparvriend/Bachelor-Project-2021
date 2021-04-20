@@ -20,7 +20,7 @@ TRAINING_DATA_POINTS = 1200
 def main():
     #runNormalDataset()
     #runDistanceDataset()
-    #runAgeDataset()
+    runAgeDataset()
 
 def getAvgAccuracy(sf, mf):
     specPrints = ["Single layer neural network accuracy: ", "Double layer neural network accuracy: ", "Triple layer neural network accuracy: "]

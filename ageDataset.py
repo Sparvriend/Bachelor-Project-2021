@@ -132,7 +132,7 @@ def finalizeGraph(legend, name):
     plt.ylabel('Output') 
     plt.xlabel('Age')
     plt.grid()
-    plt.title(name)
+    #plt.title(name)
     plt.savefig('Data/age/' + name + '.png')
     plt.clf()
 
