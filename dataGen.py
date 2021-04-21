@@ -2,24 +2,26 @@ import pandas as pd
 import numpy as np
 import random
 
-def main():
-    initData(1, 500)
+NOISE_VARIABLES = 100
+
+# cutoff point for visits: 24 Hour last visit for either the host or the visitor means that it is not allowed. 25 is allowed.
 
 # This function initializes data generation
 # It is used for the normal dataset, 50% of the dataset is eligible, the other 50% is ineligible based on the number of fail conditions
-def initData(MAX_FAIL_CONDITIONS, DATA_POINTS):
+def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    tf = modifyData(tf, DATA_POINTS, dfFail[1])
+    tf = modifyData(tf, DATA_POINTS, dfFail[1], TYPE, LOC)
 
     return tf
 
 # This function modifies the data, it adds the eligibility column as well as the noise variables
 # Followed by preprocessing
-def modifyData(tf, DATA_POINTS, failOn):
+def modifyData(tf, DATA_POINTS, failOn, TYPE, LOC):
     #printFailOn(failOn, tf, DATA_POINTS)
-    #tf = pd.concat([tf, generateNoiseData(DATA_POINTS)], axis = 1)
-    tf.to_excel('testing.xlsx')
+    tf = pd.concat([tf, generateNoiseData(DATA_POINTS)], axis = 1)
+    tf = tf.sample(frac = 1)
+    tf.to_excel(LOC + TYPE + '.xlsx')
 
     return tf
 
@@ -48,12 +50,27 @@ def generateBoolean(DATA_POINTS):
 
     return data
 
+# Function that generates noise data
+def generateNoiseData(DATA_POINTS):
+    noiseVariables = []
+    keys = []
+
+    for i in range(NOISE_VARIABLES):
+        df1 = generateNumerical(0, 100, DATA_POINTS)
+        df2 = generateNumerical(0, 100, DATA_POINTS)
+        name = "Noise" + str(i)
+        keys.append(name)
+        noiseVariables.append((df1+df2)) 
+
+    df = pd.DataFrame.from_records(list(map(list, zip(*noiseVariables))), columns = keys)
+    return df
+
 # Function that generates a list of size DATA_POINTS
 # All datapoints in the list are eligible
 def generatePerfectData(DATA_POINTS):
     # Generating numerical data
-    lastHostVisit    = generateNumerical(24, 48, DATA_POINTS)
-    lastVisitorVisit = generateNumerical(24, 48, DATA_POINTS)
+    lastHostVisit    = generateNumerical(25, 48, DATA_POINTS)
+    lastVisitorVisit = generateNumerical(25, 48, DATA_POINTS)
     partySizeHost    = generateNumerical(1, 6, DATA_POINTS)
     partySizeVisitor = generateNumerical(1, 6, DATA_POINTS)
     adultsVisitor    = np.ones(DATA_POINTS)
@@ -116,12 +133,12 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
             conditions[rand] = 1
 
             if rand == 0:
-                df.loc[i, 'lastVisitH'] = random.choice(list(range(0, 24)))
+                df.loc[i, 'lastVisitH'] = random.choice(list(range(0, 25)))
                 failOn[0] += 1
                 continue
 
             if rand == 1:
-                df.loc[i, 'lastVisitV'] = random.choice(list(range(0, 24)))
+                df.loc[i, 'lastVisitV'] = random.choice(list(range(0, 25)))
                 failOn[1] += 1
                 continue
 
@@ -187,9 +204,9 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
                 randy = random.choice(list(range(0, 2)))
                 if randy == 0:
                     df.loc[i, 'sizeH'] = random.choice(list(range(1, 6)))
-                    df.loc[i, 'sizeV'] = random.choice(list(range(7 - df.loc[i, 'sizeH'], 7)))
+                    df.loc[i, 'sizeV'] = random.choice(list(range(int(max(7 - df.loc[i, 'sizeH'], df.loc[i, 'adults'])), 7)))
                 if randy == 1:
-                    df.loc[i, 'sizeV'] = random.choice(list(range(1, 6)))
+                    df.loc[i, 'sizeV'] = random.choice(list(range(int(df.loc[i, 'adults']), 6)))
                     df.loc[i, 'sizeH'] = random.choice(list(range(7 - df.loc[i, 'sizeV'], 7)))
                 failOn[7] += 1
                 continue
