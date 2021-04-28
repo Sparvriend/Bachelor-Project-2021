@@ -15,8 +15,8 @@ def testDataset(train, test, models):
 # Function that defines the testing/training dataset and splits those into independent and the dependent variable
 # Then it scales the data with a standard scaler and then returns the split and scaled data
 def manualScaleSplit(train, test):
-    x_train = train.drop('allowed', axis = 1); x_test = test.drop('allowed', axis = 1)
-    y_train = train['allowed']; y_test = test['allowed']
+    x_train = train.drop('Eligible', axis = 1); x_test = test.drop('Eligible', axis = 1)
+    y_train = train['Eligible']; y_test = test['Eligible']
 
     stdScaler = StandardScaler()
     stdScaler.fit(x_train)
