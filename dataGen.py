@@ -164,6 +164,3 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
                     continue
 
     return (df, failOn)
-
-if __name__ == "__main__":
-    main()

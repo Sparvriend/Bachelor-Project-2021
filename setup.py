@@ -2,22 +2,28 @@ import classifier
 import normalDataset
 import distanceDataset
 import ageDataset
+import checkDatasets
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from xgboost import XGBClassifier
 
-DATA_POINTS = 5000
+DATA_POINTS = 500
 MAX_ITERATIONS = 3000
 
 def main():
     print("0 = MLP, 1 = Random Forest, 2 = XGBoost")
     ls = input("Which learning system?\n"); ls = int(ls)
-    print("0 = Normal, 1 = Distance, 2 = Age")
+    print("0 = Normal, 1 = Age, 2 = Contribution, 3 = Spouse, 4 = Residency, 5 = Resource, 6 = Distance")
     ds = input("Which dataset?\n"); ds = int(ds)
-    if ls > 3 or 0 > ls or ds > 2 or 0 > ds:
+    if ls > 3 or 0 > ls or ds > 6 or 0 > ds:
         print("Error input value")
         exit()
-    learningSystems = ["MLP", "Random_Forest", "XGBoost"] 
+    runSetup(ls, ds)
+
+def runSetup(ls, ds):
+    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
+    datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
+    name = str(str(datasets[ds]) + str(learningSystems[ls]))
     if ls < 2 or 0 < ls: 
         models = []
         if ls == 0:
@@ -35,17 +41,26 @@ def main():
             dat = normalDataset.getData(DATA_POINTS)
             runClassifierNormal(dat, models)
         if ds == 1:
-            print("On distance dataset")
-            dat = distanceDataset.getData(DATA_POINTS)
-            out = runClassifierDistance(dat, models)
-            distanceDataset.printGraph(dat[2], out[0], 'SFDistance' + str(learningSystems[ls]))
-            distanceDataset.printGraph(dat[2], out[1], 'MFDistance' + str(learningSystems[ls]))
-        if ds == 2:
             print("On age dataset")
             dat = ageDataset.getData(DATA_POINTS)
-            out = runClassifierAge(dat, models)
-            ageDataset.printGraph(dat[2], out[0], 'SFAge' + str(learningSystems[ls]))
-            ageDataset.printGraph(dat[2], out[1], 'MFAge' + str(learningSystems[ls]))
+            out = runClassifier(dat, models)
+            ageDataset.printGraph(dat[2], out[0], 'SF' + name)
+            ageDataset.printGraph(dat[2], out[1], 'MF' + name)
+        if ds > 1 and ds < 6:
+            dat = checkDatasets.getData(DATA_POINTS, ds)
+            out = runClassifier(dat, models)
+            if ds > 1 and ds < 5:
+                checkDatasets.printBoolean(dat[2], out[0], 'SF' + name)
+                checkDatasets.printBoolean(dat[2], out[1], 'MF' + name)
+            if ds == 5:
+                checkDatasets.printNumericalGraph(dat[2], out[0], 'SF' + name)
+                checkDatasets.printNumericalGraph(dat[2], out[1], 'MF' + name)
+        if ds == 6:
+            print("On distance dataset")
+            dat = distanceDataset.getData(DATA_POINTS)
+            out = runClassifier(dat, models)
+            distanceDataset.printGraph(dat[2], out[0], 'SF' + name)
+            distanceDataset.printGraph(dat[2], out[1], 'MF' + name)
 
 # Function that creates the three MLP classifiers
 def getMLPModels(iterations):
@@ -84,17 +99,10 @@ def runClassifierNormal(datasets, models):
 
     return (acc1 + acc2 + acc3 + acc4)
 
-def runClassifierDistance(datasets, models):
-    print("Running the learning system on the distance dataset")
-    print("Training on single fail, testing on distance"); pred1 = classifier.testDataset(datasets[0], datasets[2], models)[0]
-    print("Training on multiple fail, testing on distance"); pred2 = classifier.testDataset(datasets[1], datasets[2], models)[0]
-
-    return (pred1, pred2)
-
-def runClassifierAge(datasets, models):
-    print("Running the learning system on the age dataset")
-    print("Training on single fail, testing on age"); pred1 = classifier.testDataset(datasets[0], datasets[2], models)[0]
-    print("Training on multiple fail, testing on age"); pred2 = classifier.testDataset(datasets[1], datasets[2], models)[0]
+def runClassifier(datasets, models):
+    print("Running the learning system")
+    print("Training on single fail, testing on test dataset"); pred1 = classifier.testDataset(datasets[0], datasets[2], models)[0]
+    print("Training on multiple fail, testing on test dataset"); pred2 = classifier.testDataset(datasets[1], datasets[2], models)[0]
 
     return (pred1, pred2)
 
