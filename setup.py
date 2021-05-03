@@ -11,6 +11,14 @@ DATA_POINTS = 500
 MAX_ITERATIONS = 3000
 
 def main():
+
+
+def getParameters():
+    dat = ageDataset.getData(DATA_POINTS)
+    models = getRandomForestModels()
+    classifier.findHyperParameters(dat[0], dat[2], models, "Random_Forest")
+
+def selectProgram():
     print("0 = MLP, 1 = Random Forest, 2 = XGBoost")
     ls = input("Which learning system?\n"); ls = int(ls)
     print("0 = Normal, 1 = Age, 2 = Contribution, 3 = Spouse, 4 = Residency, 5 = Resource, 6 = Distance")
@@ -18,7 +26,7 @@ def main():
     if ls > 3 or 0 > ls or ds > 6 or 0 > ds:
         print("Error input value")
         exit()
-    runSetup(ls, ds)
+    runSetup(ls, ds)   
 
 def runSetup(ls, ds):
     learningSystems = ["MLP", "Random_Forest", "XGBoost"]

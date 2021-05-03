@@ -16,7 +16,7 @@ NOISE_VARIABLES = 52
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    printFailOn(dfFail[1], tf, DATA_POINTS)
+    #printFailOn(dfFail[1], tf, DATA_POINTS)
     tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
     return tf
@@ -63,7 +63,7 @@ def generateNoiseData(DATA_POINTS):
 def generatePerfectData(DATA_POINTS):
     # Generating numerical data
     ageData       = generateNumerical(60,100, DATA_POINTS, 5)
-    resourceData  = generateNumerical(0, 3000, DATA_POINTS)
+    resourceData  = generateNumerical(0, 3000, DATA_POINTS, 10)
     distData      = generateNumerical(0, 100, DATA_POINTS)
 
     # Generating contribution year data
@@ -150,7 +150,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
 
             if rand == 4:
                 failOn[4] += 1
-                df.loc[i, "Resource"] = random.choice(list(range(3001, 6000)))
+                df.loc[i, "Resource"] = random.choice(list(range(3001, 6000, 10)))
                 continue
 
             if rand == 5:
