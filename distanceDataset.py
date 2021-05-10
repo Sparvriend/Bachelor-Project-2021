@@ -40,8 +40,6 @@ def printGraph(test, predictions, name):
                 else:
                     resultArr[i] += eligArr[i]/countArr[i]
         
-        # Averaging the prediction results over the 3 nets
-        resultArr = [i/3 for i in resultArr]
         plt.grid()
         if p == 0:
             plt.plot(list(range(0, 101)), resultArr, color = 'red', linewidth = 1.0)

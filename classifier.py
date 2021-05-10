@@ -75,8 +75,8 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         model.fit(x_train, y_train)
         predict = model.predict(x_test)
         accuracy = accuracy_score(y_test, predict)
-        print(model)
-        print("Accuracy score:\n" + str(accuracy))
+        #print(model)
+        print("Accuracy score: " + str(accuracy))
         predicts.append(predict)
         accuracies.append(accuracy)
 

@@ -41,8 +41,6 @@ def printGraph(test, predictions, name):
                 else:
                     resultArr[i] += eligArr[i]/countArr[i]
         
-        # Dividing by 3, as the results for the three neural nets need to be averaged for the full split
-        resultArr = [i/3 for i in resultArr]
         plt.grid()
         if p == 0:
             plt.plot(list(range(0, 105, 5)), resultArr, '--', color = 'red', linewidth = 1.0)

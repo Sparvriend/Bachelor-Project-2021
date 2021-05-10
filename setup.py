@@ -1,23 +1,24 @@
-import classifier
-import normalDataset
-import distanceDataset
-import ageDataset
-import checkDatasets
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from xgboost import XGBClassifier
+import distanceDataset
+import checkDatasets
+import normalDataset
+import pandas as pd
+import classifier
+import ageDataset
 import os
 import sys
-import pandas as pd
 
-DATA_POINTS = 500
+DATA_POINTS = 25000
 
 # TODO:
 # - Fix results
-#   - Fix all datasets with graph printing functions (age/distance/resource)
+#   - Decide on using graphing function that makes all graphs seperately for the three learning systems, or one that makes one graph for the three learning systems
 #   - Comment code
 
 def main():
+    #selectProgram()
     runAll()
 
 def selectParameters():
@@ -41,29 +42,31 @@ def selectParameters():
             print("==============================")
 
 def runAll():
-    #learningSystems = ["MLP", "Random_Forest", "XGBoost"]
-    learningSystems = ["MLP"]
+    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
     datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
-    allDatasets = []; out = []
+    allDatasets = []; out = []; models = []
 
-    for j in list(range(0, len(datasets))):
+    for i in range(0, len(learningSystems)):
+        models.append(getModels(i))
+
+    for j in range(0, len(datasets)):
         allDatasets.append(getDataset(j))
 
-    allOut = []
+    allAcc = [[], [], []]
     for i in list(range(0, len(learningSystems))):
         for j in list(range(0, len(datasets))):
-            out = runSetup(i, j, allDatasets[j])
-            totalOut = []
+            out = runSetup(i, j, allDatasets[j], models[i])
+            totalAcc = []
             for result in out:
-                totalOut.append(result[1])
-            allOut.append(totalOut)
+                totalAcc.append(result[1])
+            allAcc[i].append(totalAcc)
 
-    # This is seperated because of printing issues
+    # This is seperated because of printing issues 
     sys.stdout = open("DataRes/finalAccuracy.txt", "w")
     for i in list(range(0, len(learningSystems))):
         for j in list(range(0, len(datasets))):
             print(learningSystems[i] + datasets[j])
-            print(allOut[i][j])
+            print(allAcc[i][j])
             print("===========================================")
 
 def getParameters():
@@ -84,8 +87,7 @@ def selectProgram():
     if ls > 3 or 0 > ls or ds > 6 or 0 > ds:
         print("Error input value")
         exit()
-    dat = getDataset(ds)
-    runSetup(ls, ds, dat)   
+    runSetup(ls, ds, getDataset(ds), getModels(ls))   
 
 def getDataset(ds):
     dat = []
@@ -104,42 +106,47 @@ def getDataset(ds):
 
     return dat
 
-def runSetup(ls, ds, dat):
+def getModels(ls):
+    models = []
+    if ls == 0:
+        print("Getting MLP models")
+        models = getMLPModels()
+    if ls == 1:
+        print("Getting Random Forest models")
+        models = getRandomForestModels()
+    if ls == 2:
+        print("Getting XGBoost models")
+        models = getXGBoostModels()
+
+    return models
+
+def runSetup(ls, ds, dat, models):
     learningSystems = ["MLP", "Random_Forest", "XGBoost"]
     datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
     name = str(str(datasets[ds]) + str(learningSystems[ls]))
-    out = []; models = []
-    if ls < 2 or 0 < ls: 
-        if ls == 0:
-            print("Running MLP learning system")
-            models = getMLPModels()
-        if ls == 1:
-            print("Running Random Forest learning system")
-            models = getRandomForestModels()
-        if ls == 2:
-            print("Running XGBoost learning system")
-            models = getXGBoostModels()
-        if ds == 0:
-            print("On normal dataset")
-            out = runClassifierNormal(dat, models)
-        if ds == 1:
-            print("On age dataset")
-            out = runClassifier(dat, models)
-            ageDataset.printGraph(dat[2], out[0][0], 'SF' + name)
-            ageDataset.printGraph(dat[2], out[1][0], 'MF' + name)
-        if ds > 1 and ds < 6:
-            out = runClassifier(dat, models)
-            if ds > 1 and ds < 5:
-                checkDatasets.printBoolean(dat[2], out[0][0], 'SF' + name)
-                checkDatasets.printBoolean(dat[2], out[1][0], 'MF' + name)
-            if ds == 5:
-                checkDatasets.printNumericalGraph(dat[2], out[0][0], 'SF' + name)
-                checkDatasets.printNumericalGraph(dat[2], out[1][0], 'MF' + name)
-        if ds == 6:
-            print("On distance dataset")
-            out = runClassifier(dat, models)
-            distanceDataset.printGraph(dat[2], out[0][0], 'SF' + name)
-            distanceDataset.printGraph(dat[2], out[1][0], 'MF' + name)
+    out = []
+    if ds == 0:
+        print("On normal dataset")
+        out = runClassifierNormal(dat, models)
+    if ds == 1:
+        print("On age dataset")
+        out = runClassifier(dat, models)
+        ageDataset.printGraph(dat[2], out[0][0], 'SF' + name)
+        ageDataset.printGraph(dat[2], out[1][0], 'MF' + name)
+    if ds > 1 and ds < 6:
+        print("One one of the check datasets")
+        out = runClassifier(dat, models)
+        #if ds > 1 and ds < 5:
+            #checkDatasets.printBoolean(dat[2], out[0][0], 'SF' + name)
+            #checkDatasets.printBoolean(dat[2], out[1][0], 'MF' + name)
+        if ds == 5:
+            checkDatasets.printNumericalGraph(dat[2], out[0][0], 'SF' + name)
+            checkDatasets.printNumericalGraph(dat[2], out[1][0], 'MF' + name)
+    if ds == 6:
+        print("On distance dataset")
+        out = runClassifier(dat, models)
+        distanceDataset.printGraph(dat[2], out[0][0], 'SF' + name)
+        distanceDataset.printGraph(dat[2], out[1][0], 'MF' + name)
     
     return out
 
