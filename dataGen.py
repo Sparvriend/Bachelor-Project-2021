@@ -16,7 +16,7 @@ NOISE_VARIABLES = 52
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    #printFailOn(dfFail[1], tf, DATA_POINTS)
+    printFailOn(dfFail[1], tf, DATA_POINTS)
     tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
     return tf
@@ -62,8 +62,8 @@ def generateNoiseData(DATA_POINTS):
 # All datapoints in the list are eligible
 def generatePerfectData(DATA_POINTS):
     # Generating numerical data
-    ageData       = generateNumerical(60,100, DATA_POINTS, 5)
-    resourceData  = generateNumerical(0, 3000, DATA_POINTS, 10)
+    ageData       = generateNumerical(60, 100, DATA_POINTS)
+    resourceData  = generateNumerical(0, 2999, DATA_POINTS, 10)
     distData      = generateNumerical(0, 100, DATA_POINTS)
 
     # Generating contribution year data
@@ -81,18 +81,44 @@ def generatePerfectData(DATA_POINTS):
 
     # Ensuring that the dataset is perfect
     for i in range(len(df.Age)):
-        if(df.loc[i, "Gender"] == "Male" and df.loc[i, "Age"] < 65):
-            df.loc[i, "Age"] = random.choice(list(range(65, 100, 5)))
+        if(df.loc[i, "Gender"] == 1 and df.loc[i, "Age"] < 65):
+            df.loc[i, "Age"] = random.choice(list(range(65, 100)))
         
         if(df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > IN_OUT_PATIENT_DISTANCE):
             df.loc[i, "InOut"] = 0
 
-        if(df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] < IN_OUT_PATIENT_DISTANCE):
+        if(df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] <= IN_OUT_PATIENT_DISTANCE):
             df.loc[i, "InOut"] = 1
 
     df = pd.concat([df, pd.DataFrame({'Eligible': eligibility})], axis = 1)
 
     return df
+
+def checkEligibility(df):
+    failOn = [0,0,0,0,0,0]
+
+    for i in range(len(df.Age)):
+        totalContributionYears = 0
+        if(((df.loc[i, "Gender"] == 1) & (df.loc[i, "Age"] < 65)) | ((df.loc[i, "Gender"] == 0) & (df.loc[i, "Age"] < 60))):
+            failOn[0] += 1
+
+        totalContributionYears = df.loc[i, "Contribution1"] + df.loc[i, "Contribution2"] + df.loc[i, "Contribution3"] + df.loc[i, "Contribution4"] + df.loc[i, "Contribution5"]
+        if(totalContributionYears < 4):
+            failOn[1] += 1
+
+        if(df.loc[i, "Spouse"] == 0):
+            failOn[2] += 1
+
+        if(df.loc[i, "Residency"] == 0):
+            failOn[3] += 1
+        
+        if(df.loc[i, "Resource"] > 3000):
+            failOn[4] += 1
+
+        if((df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > IN_OUT_PATIENT_DISTANCE) or (df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] < IN_OUT_PATIENT_DISTANCE)):
+            failOn[5] += 1
+
+    return failOn
 
 # Function that modifies a (perfect) dataset, so that it fails on one or multiple conditions
 # The six rules' failing conditions are specified here as well
@@ -109,7 +135,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
         for j in range(NR_FAIL_CONDITIONS):
             # When the data point is supposed to fail on only one condition, this if else statement makes sure that the rule it fails on is completely fairly distributed.
             if (MAX_FAIL_CONDITIONS == 1) or (MAX_FAIL_CONDITIONS == 6 and j == 1):
-                rand = int(i/(float(len(df.Age)/6)))
+               rand = int(i/(float(len(df.Age)/6)))
             else:
                 rand = random.choice(list(range(0, 6)))
 
@@ -121,10 +147,10 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
             if rand == 0:
                 failOn[0] += 1
                 if df.loc[i, "Gender"] == 1:
-                    df.loc[i, "Age"] = random.choice(list(range(0, 65, 5)))
+                    df.loc[i, "Age"] = random.choice(list(range(0, 65)))
 
                 if df.loc[i, "Gender"] == 0:
-                    df.loc[i, "Age"] = random.choice(list(range(0, 60, 5)))
+                    df.loc[i, "Age"] = random.choice(list(range(0, 60)))
                 continue
 
             if rand == 1:
@@ -150,17 +176,17 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
 
             if rand == 4:
                 failOn[4] += 1
-                df.loc[i, "Resource"] = random.choice(list(range(3001, 6000, 10)))
+                df.loc[i, "Resource"] = random.choice(list(range(3001, 6001, 10)))
                 continue
 
             if rand == 5:
                 failOn[5] += 1
                 if df.loc[i, "InOut"] == 0:
-                    df.loc[i, "Distance"] = random.choice(list(range(0, IN_OUT_PATIENT_DISTANCE-1)))
+                    df.loc[i, "Distance"] = random.choice(list(range(0, IN_OUT_PATIENT_DISTANCE+1)))
                     continue
 
                 if df.loc[i, "InOut"] == 1:
-                    df.loc[i, "Distance"] = random.choice(list(range(IN_OUT_PATIENT_DISTANCE+1, 100)))
+                    df.loc[i, "Distance"] = random.choice(list(range(IN_OUT_PATIENT_DISTANCE+1, 101)))
                     continue
 
     return (df, failOn)

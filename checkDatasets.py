@@ -18,12 +18,12 @@ def getData(DATA_POINTS, rule):
         print("Generating training/testing data for the neural network for the spouse dataset")
         datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/spouse/spouseDataset1'))
         datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/spouse/spouseDataset6'))
-        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), 'Spouse'), DATA_POINTS, 'TEST', 'DataRes/spouse/spouseDataset'))
+        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Spouse"), DATA_POINTS, 'TEST', 'DataRes/spouse/spouseDataset'))
     if rule == 4:
         print("Generating training/testing data for the neural network for the residency dataset")
         datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/residency/residencyDataset1'))
         datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/residency/residencyDataset6'))
-        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), 'Residency'), DATA_POINTS, 'TEST', 'DataRes/residency/residencyDataset'))
+        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Residency"), DATA_POINTS, 'TEST', 'DataRes/residency/residencyDataset'))
     if rule == 5:
         print("Generating training/testing data for the neural network for the resource dataset")
         datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/resource/resourceDataset1'))
@@ -36,17 +36,17 @@ def failContribution(df):
     for i in range(int(len(df.Age)/2)):
         df.loc[i, "Eligible"] = 0
         contrYears = [0,0,0,0,0]
-        yearsPaid = random.choice(list(range(0, 3)))
+        yearsPaid = random.choice(list(range(0, 4)))
 
         for q in range(yearsPaid):
-            contrYears[random.choice(list(range(0, 5)))] = 1
+            contrYears[random.choice(list(range(0, 6)))] = 1
         for q in range(len(contrYears)):
             df.loc[i, "Contribution" + str(q+1)] = contrYears[q]
     return df
 
 def failCondition(df, condition):
     for i in range(len(df.Age)):
-        df.loc[i, condition] = random.choice(list(range(0, 1)))
+        df.loc[i, condition] = random.choice(list(range(0, 2)))
         if (df.loc[i, condition] == 0):
             df.loc[i, "Eligible"] = 0
     return df

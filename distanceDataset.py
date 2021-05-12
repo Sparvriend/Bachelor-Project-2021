@@ -17,7 +17,7 @@ def getData(DATA_POINTS):
 def failDistance(df):
     for i in range(len(df.Age)):
         df.loc[i, "Distance"] = random.choice(list(range(0, 101)))
-        if (df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] < 50) or (df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > 50):
+        if (df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] <= 50) or (df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > 50):
             df.loc[i, "Eligible"] = 0
     return df
 

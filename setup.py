@@ -11,15 +11,14 @@ import os
 import sys
 
 DATA_POINTS = 25000
-
 # TODO:
 # - Fix results
 #   - Decide on using graphing function that makes all graphs seperately for the three learning systems, or one that makes one graph for the three learning systems
 #   - Comment code
 
 def main():
-    #selectProgram()
-    runAll()
+    selectProgram()
+    #runAll()
 
 def selectParameters():
     for modelType in ["MLP"]:
@@ -154,6 +153,7 @@ def runSetup(ls, ds, dat, models):
 def getMLPModels():
     models = []
     models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
+    #models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))	
 
     return models
 
