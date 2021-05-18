@@ -1,5 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBClassifier
 import distanceDataset
 import checkDatasets
@@ -10,15 +11,28 @@ import ageDataset
 import os
 import sys
 
-DATA_POINTS = 25000
+DATA_POINTS = 250
 # TODO:
 # - Fix results
-#   - Decide on using graphing function that makes all graphs seperately for the three learning systems, or one that makes one graph for the three learning systems
-#   - Comment code
+# - Comment code
 
 def main():
-    selectProgram()
-    #runAll()
+    #testCor()
+    #testBram()
+    #selectProgram()
+    runAll()
+    #multipleRuns(5)
+
+def testBram():
+    names = ["distanceSet", "Test_MF_2k", "Test_SF_2k", "Train_SF_50k", "Train_MF_50k"]
+    datasets = []
+    for name in names:
+         datasets.append(pd.read_excel("BramData/" + str(name) + ".xlsx").rename(columns = {'Eligibility': 'Eligible'}))
+
+    models = getModels(1)
+    print("Running the learning system")
+    print("Training on single fail, testing on test dataset"); out1 = classifier.testDataset(datasets[3], datasets[0], models)
+    print("Training on multiple fail, testing on test dataset"); out2 = classifier.testDataset(datasets[4], datasets[0], models)
 
 def selectParameters():
     for modelType in ["MLP"]:
@@ -40,32 +54,93 @@ def selectParameters():
                         print(df.loc[i, 'params'])
             print("==============================")
 
-def runAll():
-    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
-    datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
-    allDatasets = []; out = []; models = []
-
-    for i in range(0, len(learningSystems)):
-        models.append(getModels(i))
-
-    for j in range(0, len(datasets)):
-        allDatasets.append(getDataset(j))
-
+def testModels(learningSystems, datasets, trainedModels, allDatasets, scalers):
     allAcc = [[], [], []]
     for i in list(range(0, len(learningSystems))):
-        for j in list(range(0, len(datasets))):
-            out = runSetup(i, j, allDatasets[j], models[i])
+        totalAcc = []
+
+        # The normal computation is done manually
+        out = [classifier.onlyTest(trainedModels[i][0], allDatasets[0][3], scalers[1]), classifier.onlyTest(trainedModels[i][0], allDatasets[0][1], scalers[0]),
+               classifier.onlyTest(trainedModels[i][1], allDatasets[0][3], scalers[1]), classifier.onlyTest(trainedModels[i][1], allDatasets[0][1], scalers[0])]
+        for result in out:
+            totalAcc.append([result[1]])
+        allAcc[i].append(totalAcc)
+        for j in list(range(0, len(datasets)))[1:]:
+            out = [classifier.onlyTest(trainedModels[i][0], allDatasets[j], scalers[0]), classifier.onlyTest(trainedModels[i][1], allDatasets[j], scalers[1])]
             totalAcc = []
             for result in out:
                 totalAcc.append(result[1])
             allAcc[i].append(totalAcc)
 
-    # This is seperated because of printing issues 
-    sys.stdout = open("DataRes/finalAccuracy.txt", "w")
+    return allAcc
+
+def printFinalAccuracy(learningSystems, datasets, allAcc):
+    # This is seperated from the other loops because of printing issues 
+        sys.stdout = open("DataRes/finalAccuracy.txt", "w")
+        for i in list(range(0, len(learningSystems))):
+            for j in list(range(0, len(datasets))):
+                print(learningSystems[i] + datasets[j])
+                print(allAcc[i][j])
+                print("===========================================")
+
+def runAll(PRINT_TO_FILE = 1):
+    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
+    datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
+    allDatasets = []; out = []; trainedModels = []
+
+    for j in range(0, len(datasets)):
+        allDatasets.append(getOnlyTest(j))
+
+    scalers = []
+    x_train = allDatasets[0][0].drop(['Age', 'Resource', 'Distance', 'Eligible'], axis = 1)
+    scaler = MinMaxScaler(); scaler.fit(x_train)
+    scalers.append(scaler)
+
+    x_train = allDatasets[0][2].drop(['Age', 'Resource', 'Distance', 'Eligible'], axis = 1)
+    scaler = MinMaxScaler(); scaler.fit(x_train)
+    scalers.append(scaler)
+
+    for i in range(0, len(learningSystems)):
+        trained = []; model = getModels(i)
+        trained.append(classifier.trainModel(allDatasets[0][0], model[0], scalers[0]))
+        trained.append(classifier.trainModel(allDatasets[0][2], model[0], scalers[1]))
+        trainedModels.append(trained)
+
+    allAcc = testModels(learningSystems, datasets, trainedModels, allDatasets, scalers)
+
+    if PRINT_TO_FILE == 1:
+        printFinalAccuracy(learningSystems, datasets, allAcc)
+
+    return allAcc
+
+def multipleRuns(iterations):
+    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
+    datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
+    totalResult = []
+
+    for p in range(iterations):
+        print("################")
+        print("ON ITERATION: " + str(p))
+        print("################")
+        res = runAll(0)
+        if p == 0:
+            totalResult = res
+        else:
+            for i in list(range(0, len(learningSystems))):
+                for j in list(range(0, len(datasets))):
+                    for q in list(range(0, len(res[i][j]))):
+                        totalResult[i][j][q][0] += res[i][j][q][0]
+
+    for i in list(range(0, len(learningSystems))):
+        for j in list(range(0, len(datasets))):
+            for q in list(range(0, len(res[i][j]))):
+                totalResult[i][j][q][0] /= iterations
+
+    sys.stdout = open("DataRes/totalAccuracy" + str(iterations) + "iterations.txt", "w")
     for i in list(range(0, len(learningSystems))):
         for j in list(range(0, len(datasets))):
             print(learningSystems[i] + datasets[j])
-            print(allAcc[i][j])
+            print(totalResult[i][j])
             print("===========================================")
 
 def getParameters():
@@ -105,6 +180,20 @@ def getDataset(ds):
 
     return dat
 
+def getOnlyTest(ds):
+    if ds == 0:
+        print("Getting normal test dataset")
+        return normalDataset.getData(DATA_POINTS)
+    if ds == 1:
+        print("Getting age test dataset")
+        return ageDataset.getOnlyTest(DATA_POINTS)
+    if ds > 1 and ds < 6:
+        print("Getting one of test check datasets")
+        return checkDatasets.getOnlyTest(DATA_POINTS, ds)
+    if ds == 6:
+        print("Getting test distance dataset")
+        return distanceDataset.getOnlyTest(DATA_POINTS)
+
 def getModels(ls):
     models = []
     if ls == 0:
@@ -135,9 +224,6 @@ def runSetup(ls, ds, dat, models):
     if ds > 1 and ds < 6:
         print("One one of the check datasets")
         out = runClassifier(dat, models)
-        #if ds > 1 and ds < 5:
-            #checkDatasets.printBoolean(dat[2], out[0][0], 'SF' + name)
-            #checkDatasets.printBoolean(dat[2], out[1][0], 'MF' + name)
         if ds == 5:
             checkDatasets.printNumericalGraph(dat[2], out[0][0], 'SF' + name)
             checkDatasets.printNumericalGraph(dat[2], out[1][0], 'MF' + name)
@@ -153,7 +239,6 @@ def runSetup(ls, ds, dat, models):
 def getMLPModels():
     models = []
     models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
-    #models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))	
 
     return models
 

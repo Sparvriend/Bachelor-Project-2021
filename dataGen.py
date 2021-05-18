@@ -16,7 +16,7 @@ NOISE_VARIABLES = 52
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    printFailOn(dfFail[1], tf, DATA_POINTS)
+    #printFailOn(dfFail[1], tf, DATA_POINTS)
     tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
     return tf
@@ -27,7 +27,7 @@ def modifyData(tf, DATA_POINTS, TYPE, LOC):
 
     return tf
 
-# Function that shows what rules caused the patients to not receive the welfare benefit
+# Function that shows what rules caused the patients to not receive the welfare benefit 
 # Can be used for any dataset
 def printFailOn(data, df, DATA_POINTS):
     for i in range(len(data)):
@@ -90,35 +90,18 @@ def generatePerfectData(DATA_POINTS):
         if(df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] <= IN_OUT_PATIENT_DISTANCE):
             df.loc[i, "InOut"] = 1
 
+    for i in range(int(len(df.Age))):
+        contrYears = [1,1,1,1,1]
+        yearsPaid = random.choice(list(range(0, 2)))
+
+        for q in range(yearsPaid):
+            contrYears[random.choice(list(range(0, 5)))] = 0
+        for q in range(len(contrYears)):
+            df.loc[i, "Contribution" + str(q+1)] = contrYears[q]
+
     df = pd.concat([df, pd.DataFrame({'Eligible': eligibility})], axis = 1)
 
     return df
-
-def checkEligibility(df):
-    failOn = [0,0,0,0,0,0]
-
-    for i in range(len(df.Age)):
-        totalContributionYears = 0
-        if(((df.loc[i, "Gender"] == 1) & (df.loc[i, "Age"] < 65)) | ((df.loc[i, "Gender"] == 0) & (df.loc[i, "Age"] < 60))):
-            failOn[0] += 1
-
-        totalContributionYears = df.loc[i, "Contribution1"] + df.loc[i, "Contribution2"] + df.loc[i, "Contribution3"] + df.loc[i, "Contribution4"] + df.loc[i, "Contribution5"]
-        if(totalContributionYears < 4):
-            failOn[1] += 1
-
-        if(df.loc[i, "Spouse"] == 0):
-            failOn[2] += 1
-
-        if(df.loc[i, "Residency"] == 0):
-            failOn[3] += 1
-        
-        if(df.loc[i, "Resource"] > 3000):
-            failOn[4] += 1
-
-        if((df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > IN_OUT_PATIENT_DISTANCE) or (df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] < IN_OUT_PATIENT_DISTANCE)):
-            failOn[5] += 1
-
-    return failOn
 
 # Function that modifies a (perfect) dataset, so that it fails on one or multiple conditions
 # The six rules' failing conditions are specified here as well
@@ -135,7 +118,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
         for j in range(NR_FAIL_CONDITIONS):
             # When the data point is supposed to fail on only one condition, this if else statement makes sure that the rule it fails on is completely fairly distributed.
             if (MAX_FAIL_CONDITIONS == 1) or (MAX_FAIL_CONDITIONS == 6 and j == 1):
-               rand = int(i/(float(len(df.Age)/6)))
+                rand = int(i/(float(len(df.Age)/6)))
             else:
                 rand = random.choice(list(range(0, 6)))
 
@@ -156,7 +139,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
             if rand == 1:
                 failOn[1] += 1
                 contrYears = [0,0,0,0,0]
-                yearsPaid = random.choice(list(range(0, 3)))
+                yearsPaid = random.choice(list(range(0, 4)))
 
                 for q in range(yearsPaid):
                     contrYears[random.choice(list(range(0, 5)))] = 1

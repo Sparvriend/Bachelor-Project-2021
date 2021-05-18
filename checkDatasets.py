@@ -32,6 +32,19 @@ def getData(DATA_POINTS, rule):
 
     return datasets
 
+def getOnlyTest(DATA_POINTS, rule):
+    if rule == 2:
+        return dataGen.modifyData(failContribution(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/contribution/contributionDataset')
+
+    if rule == 3:
+        return dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Spouse"), DATA_POINTS, 'TEST', 'DataRes/spouse/spouseDataset')
+
+    if rule == 4:
+        return dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Residency"), DATA_POINTS, 'TEST', 'DataRes/residency/residencyDataset')
+
+    if rule == 5:
+        return dataGen.modifyData(failResource(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/resource/resourceDataset')
+
 def failContribution(df):
     for i in range(int(len(df.Age)/2)):
         df.loc[i, "Eligible"] = 0
@@ -39,7 +52,7 @@ def failContribution(df):
         yearsPaid = random.choice(list(range(0, 4)))
 
         for q in range(yearsPaid):
-            contrYears[random.choice(list(range(0, 6)))] = 1
+            contrYears[random.choice(list(range(0, 5)))] = 1
         for q in range(len(contrYears)):
             df.loc[i, "Contribution" + str(q+1)] = contrYears[q]
     return df

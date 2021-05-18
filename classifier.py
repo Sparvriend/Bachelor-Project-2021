@@ -1,14 +1,50 @@
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.experimental import enable_halving_search_cv 
 from sklearn.model_selection import HalvingGridSearchCV
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBClassifier
 import pandas as pd
 import numpy as np
 import setup
+
+def onlyTest(trainedModel, testSet, scaler):
+    x_test = testSet.drop('Eligible', axis = 1); y_test = testSet['Eligible']
+
+    x_test_copy = x_test.copy()
+    x_test_manual = x_test[['Age', 'Resource', 'Distance']]
+    x_test = x_test.drop(['Age', 'Resource', 'Distance'], axis = 1)
+    x_test = scaler.transform(x_test)
+
+    for i in range(len(x_test_manual.Age)):
+        x_test_manual.loc[i, 'Age'] /= 100
+        x_test_manual.loc[i, 'Distance'] /= 100
+        x_test_manual.loc[i, 'Resource'] /= 6000
+    x_test = np.concatenate([x_test_manual, x_test], axis = 1)
+
+    predict = trainedModel.predict(x_test)
+    accuracy = accuracy_score(y_test, predict)
+    print("Accuracy score: " + str(accuracy))
+
+    return (predict, accuracy)
+
+def trainModel(trainSet, model, scaler):
+    x_train = trainSet.drop('Eligible', axis = 1); y_train = trainSet['Eligible']
+
+    x_train_copy = x_train.copy()
+    x_train_manual = x_train[['Age', 'Resource', 'Distance']]
+    x_train = x_train.drop(['Age', 'Resource', 'Distance'], axis = 1)
+    x_train = scaler.transform(x_train)
+
+    for i in range(len(x_train_manual.Age)):
+        x_train_manual.loc[i, 'Age'] /= 100
+        x_train_manual.loc[i, 'Distance'] /= 100
+        x_train_manual.loc[i, 'Resource'] /= 6000
+
+    x_train = np.concatenate([x_train_manual, x_train], axis = 1)
+    #pd.DataFrame(x_train, columns = x_train_copy.columns).to_excel('DataRes/trainedOn.xlsx')
+
+    return model.fit(x_train, y_train)
 
 # Function that calls the underlying functions for running the classifier
 # Test/training datasets are manually split to have the right test/train sets
@@ -26,14 +62,34 @@ def manualScaleSplit(train, test):
     x_train = train.drop('Eligible', axis = 1); x_test = test.drop('Eligible', axis = 1)
     y_train = train['Eligible']; y_test = test['Eligible']
 
-    stdScaler = StandardScaler()
-    stdScaler.fit(x_train)
-    StandardScaler(copy = True, with_mean = True, with_std = True)
-    x_train = stdScaler.transform(x_train)
-    x_test = stdScaler.transform(x_test)
+    x_train_copy = x_train.copy(); x_test_copy = x_test.copy()
+
+    x_train_manual = x_train[['Age', 'Resource', 'Distance']]; x_train = x_train.drop(['Age', 'Resource', 'Distance'], axis = 1)
+    x_test_manual = x_test[['Age', 'Resource', 'Distance']]; x_test = x_test.drop(['Age', 'Resource', 'Distance'], axis = 1)
+
+    scaler = MinMaxScaler()
+    scaler.fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
+
+    # Manual preprocessing, because there is a chance that the maximum value (100 for age and distance, 6000 for capital resource) is not present in a datapoint in the dataset.
+    # If that happens, the values can be slightly off, which is fixed by doing it manually
+    for i in range(len(x_train_manual.Age)):
+        x_train_manual.loc[i, 'Age'] /= 100
+        x_test_manual.loc[i, 'Age'] /= 100
+        x_train_manual.loc[i, 'Distance'] /= 100
+        x_test_manual.loc[i, 'Distance'] /= 100
+        x_train_manual.loc[i, 'Resource'] /= 6000
+        x_test_manual.loc[i, 'Resource'] /= 6000
+
+    x_train = np.concatenate([x_train_manual, x_train], axis = 1)
+    x_test = np.concatenate([x_test_manual, x_test], axis = 1)
+
+    #pd.DataFrame(x_train, columns = x_train_copy.columns).to_excel('DataRes/preprocessedTrain.xlsx')
+    #pd.DataFrame(x_test, columns = x_test_copy.columns).to_excel('DataRes/preprocessedTest.xlsx')
 
     return (x_train, x_test, y_train, y_test)
-
+    
 # The parameter search space is yet to be defined for each learning system
 def findHyperParameters(train, test, modelType, testingType):
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
@@ -72,11 +128,12 @@ def fitModels(models, x_train, x_test, y_train, y_test):
     accuracies = []
 
     for model in models:
-        model.fit(x_train, y_train)
+        #model.fit(x_train, y_train)
         predict = model.predict(x_test)
         accuracy = accuracy_score(y_test, predict)
         #print(model)
         print("Accuracy score: " + str(accuracy))
+        print("Confusion matrix: \n" + str(confusion_matrix(y_test, predict)))
         predicts.append(predict)
         accuracies.append(accuracy)
 

@@ -5,6 +5,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# The eligibility for the age test dataset is not 37.5% currently
+
 def getData(DATA_POINTS):
     print("Generating training/testing data for the neural network for the age dataset")
     datasets = []
@@ -13,6 +15,9 @@ def getData(DATA_POINTS):
     datasets.append(dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset'))
 
     return datasets
+
+def getOnlyTest(DATA_POINTS):
+    return dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset')
 
 def failAge(df):
     for i in range(len(df.Age)):

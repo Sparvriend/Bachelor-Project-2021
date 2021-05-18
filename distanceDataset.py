@@ -14,6 +14,9 @@ def getData(DATA_POINTS):
 
     return datasets
 
+def getOnlyTest(DATA_POINTS):
+    return dataGen.modifyData(failDistance(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/distance/distanceDataset')
+
 def failDistance(df):
     for i in range(len(df.Age)):
         df.loc[i, "Distance"] = random.choice(list(range(0, 101)))
