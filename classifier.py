@@ -2,6 +2,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.experimental import enable_halving_search_cv 
 from sklearn.model_selection import HalvingGridSearchCV
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBClassifier
 import pandas as pd
@@ -25,10 +26,12 @@ def onlyTest(trainedModel, testSet, scaler):
     predict = trainedModel.predict(x_test)
     accuracy = accuracy_score(y_test, predict)
     print("Accuracy score: " + str(accuracy))
+    #print("Confusion matrix: \n" + str(confusion_matrix(y_test, predict)))
+    #pd.DataFrame(x_test, columns = x_test_copy.columns).to_excel('DataRes/testedOn.xlsx')
 
     return (predict, accuracy)
 
-def trainModel(trainSet, model, scaler):
+def trainModel(trainSet, model, scaler, type):
     x_train = trainSet.drop('Eligible', axis = 1); y_train = trainSet['Eligible']
 
     x_train_copy = x_train.copy()
@@ -42,7 +45,6 @@ def trainModel(trainSet, model, scaler):
         x_train_manual.loc[i, 'Resource'] /= 6000
 
     x_train = np.concatenate([x_train_manual, x_train], axis = 1)
-    #pd.DataFrame(x_train, columns = x_train_copy.columns).to_excel('DataRes/trainedOn.xlsx')
 
     return model.fit(x_train, y_train)
 
@@ -90,7 +92,6 @@ def manualScaleSplit(train, test):
 
     return (x_train, x_test, y_train, y_test)
     
-# The parameter search space is yet to be defined for each learning system
 def findHyperParameters(train, test, modelType, testingType):
     x_train, x_test, y_train, y_test = manualScaleSplit(train, test)
     param_grid = {}
@@ -98,7 +99,7 @@ def findHyperParameters(train, test, modelType, testingType):
     models = []
 
     if modelType == "MLP":
-        models = setup.getMLPModels()
+        models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', max_iter = 3000))
         param_grid = {'alpha': [0.0001, 0.001, 0.01, 0.1], 'learning_rate_init': [0.0001, 0.001, 0.01, 0.1]}
 
     if modelType == "Random_Forest":
@@ -128,10 +129,9 @@ def fitModels(models, x_train, x_test, y_train, y_test):
     accuracies = []
 
     for model in models:
-        #model.fit(x_train, y_train)
+        model.fit(x_train, y_train)
         predict = model.predict(x_test)
         accuracy = accuracy_score(y_test, predict)
-        #print(model)
         print("Accuracy score: " + str(accuracy))
         print("Confusion matrix: \n" + str(confusion_matrix(y_test, predict)))
         predicts.append(predict)

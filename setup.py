@@ -10,49 +10,19 @@ import classifier
 import ageDataset
 import os
 import sys
+import time
+import numpy as np
+from datetime import timedelta
 
-DATA_POINTS = 250
+DATA_POINTS = 1200
 # TODO:
 # - Fix results
 # - Comment code
 
 def main():
-    #testCor()
-    #testBram()
-    #selectProgram()
-    runAll()
-    #multipleRuns(5)
-
-def testBram():
-    names = ["distanceSet", "Test_MF_2k", "Test_SF_2k", "Train_SF_50k", "Train_MF_50k"]
-    datasets = []
-    for name in names:
-         datasets.append(pd.read_excel("BramData/" + str(name) + ".xlsx").rename(columns = {'Eligibility': 'Eligible'}))
-
-    models = getModels(1)
-    print("Running the learning system")
-    print("Training on single fail, testing on test dataset"); out1 = classifier.testDataset(datasets[3], datasets[0], models)
-    print("Training on multiple fail, testing on test dataset"); out2 = classifier.testDataset(datasets[4], datasets[0], models)
-
-def selectParameters():
-    for modelType in ["MLP"]:
-        for testingSet in ["MFMF", "MFSF", "SFMF", "SFSF"]:
-            if modelType == "MLP":
-                for MLP in [2]:
-                    df = pd.read_excel("DataRes/hyperparameters/" + modelType + testingSet + str(MLP) + ".xlsx")
-                    for i in range(len(df.iter)):
-                        if df.loc[i, 'rank_test_score'] == 1:
-                            print(modelType + testingSet + str(MLP))
-                            print(df.loc[i, 'mean_test_score'])
-                            print(df.loc[i, 'params'])
-            else:
-                df = pd.read_excel("DataRes/hyperparameters/" + modelType + testingSet + "0.xlsx")
-                for i in range(len(df.iter)):
-                    if df.loc[i, 'rank_test_score'] == 1:
-                        print(modelType + testingSet + "0")
-                        print(df.loc[i, 'mean_test_score'])
-                        print(df.loc[i, 'params'])
-            print("==============================")
+    selectProgram()
+    #runAll()
+    #multipleRuns(1)
 
 def testModels(learningSystems, datasets, trainedModels, allDatasets, scalers):
     allAcc = [[], [], []]
@@ -69,7 +39,7 @@ def testModels(learningSystems, datasets, trainedModels, allDatasets, scalers):
             out = [classifier.onlyTest(trainedModels[i][0], allDatasets[j], scalers[0]), classifier.onlyTest(trainedModels[i][1], allDatasets[j], scalers[1])]
             totalAcc = []
             for result in out:
-                totalAcc.append(result[1])
+                totalAcc.append([result[1]])
             allAcc[i].append(totalAcc)
 
     return allAcc
@@ -101,9 +71,9 @@ def runAll(PRINT_TO_FILE = 1):
     scalers.append(scaler)
 
     for i in range(0, len(learningSystems)):
-        trained = []; model = getModels(i)
-        trained.append(classifier.trainModel(allDatasets[0][0], model[0], scalers[0]))
-        trained.append(classifier.trainModel(allDatasets[0][2], model[0], scalers[1]))
+        trained = []; models = getModels(i)
+        trained.append(classifier.trainModel(allDatasets[0][0], models[0], scalers[0], 'SF'))
+        trained.append(classifier.trainModel(allDatasets[0][2], models[1], scalers[1], 'MF'))
         trainedModels.append(trained)
 
     allAcc = testModels(learningSystems, datasets, trainedModels, allDatasets, scalers)
@@ -114,9 +84,11 @@ def runAll(PRINT_TO_FILE = 1):
     return allAcc
 
 def multipleRuns(iterations):
+    startTime = time.time()
     learningSystems = ["MLP", "Random_Forest", "XGBoost"]
     datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
-    totalResult = []
+    allResults = []; totalStDev = []
+    wrongAccBool = False
 
     for p in range(iterations):
         print("################")
@@ -124,34 +96,36 @@ def multipleRuns(iterations):
         print("################")
         res = runAll(0)
         if p == 0:
-            totalResult = res
+            allResults = res
+            if res[0][0][0][0] < 0.6:
+                wrongAccBool = True
         else:
+            if res[0][0][0][0] < 0.6:
+                wrongAccBool = True
             for i in list(range(0, len(learningSystems))):
                 for j in list(range(0, len(datasets))):
                     for q in list(range(0, len(res[i][j]))):
-                        totalResult[i][j][q][0] += res[i][j][q][0]
+                        allResults[i][j][q].append(res[i][j][q])
 
     for i in list(range(0, len(learningSystems))):
+        totalStDev.append([])
         for j in list(range(0, len(datasets))):
+            totalStDev[i].append([])
             for q in list(range(0, len(res[i][j]))):
-                totalResult[i][j][q][0] /= iterations
-
+                totalStDev[i][j].append([])
+                totalStDev[i][j][q] = round(float(np.std(allResults[i][j][q])), 2)
+                allResults[i][j][q] = round(float(np.mean(allResults[i][j][q])), 2)
+                
+    print(wrongAccBool)
+    print("Time elapsed: " + str(timedelta(seconds = time.time() - startTime)))
     sys.stdout = open("DataRes/totalAccuracy" + str(iterations) + "iterations.txt", "w")
+
     for i in list(range(0, len(learningSystems))):
         for j in list(range(0, len(datasets))):
             print(learningSystems[i] + datasets[j])
-            print(totalResult[i][j])
+            print(allResults[i][j])
+            print(totalStDev[i][j])
             print("===========================================")
-
-def getParameters():
-    dat = normalDataset.getData(DATA_POINTS)
-    learningSystems = ["MLP", "Random_Forest", "XGBoost"]
-    
-    for ls in list(range(0,3)):
-        print("Training on multiple fail, testing on multiple fail"); classifier.findHyperParameters(dat[2], dat[3], learningSystems[ls], "MFMF")
-        print("Training on multiple fail, testing on single fail"); classifier.findHyperParameters(dat[2], dat[1], learningSystems[ls], "MFSF")
-        print("Training on single fail, testing on multiple fail"); classifier.findHyperParameters(dat[0], dat[3], learningSystems[ls], "SFMF")
-        print("Training on single fail, testing on single fail"); classifier.findHyperParameters(dat[0], dat[1], learningSystems[ls], "SFSF")
 
 def selectProgram():
     print("0 = MLP, 1 = Random Forest, 2 = XGBoost")
@@ -161,7 +135,7 @@ def selectProgram():
     if ls > 3 or 0 > ls or ds > 6 or 0 > ds:
         print("Error input value")
         exit()
-    runSetup(ls, ds, getDataset(ds), getModels(ls))   
+    runSingle(ls, ds, getDataset(ds), getModels(ls))   
 
 def getDataset(ds):
     dat = []
@@ -208,7 +182,7 @@ def getModels(ls):
 
     return models
 
-def runSetup(ls, ds, dat, models):
+def runSingle(ls, ds, dat, models):
     learningSystems = ["MLP", "Random_Forest", "XGBoost"]
     datasets = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
     name = str(str(datasets[ds]) + str(learningSystems[ls]))
@@ -235,10 +209,11 @@ def runSetup(ls, ds, dat, models):
     
     return out
 
-# Function that creates the three MLP classifiers
+# Function that creates MLP classifiers
 def getMLPModels():
     models = []
-    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
+    models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
 
     return models
 
@@ -246,12 +221,14 @@ def getMLPModels():
 def getRandomForestModels():
     models = []
     models.append(RandomForestClassifier(n_estimators = 16, max_depth = 19, max_leaf_nodes = 17, min_samples_split = 6, random_state = 0))
+    models.append(RandomForestClassifier(n_estimators = 16, max_depth = 19, max_leaf_nodes = 17, min_samples_split = 6, random_state = 0))
 
     return models
 
 # Function that creates XGBoost classifiers
 def getXGBoostModels():
     models = []
+    models.append(XGBClassifier(n_estimators = 16, max_depth = 7, objective ='reg:squarederror', learning_rate = 0.25, gamma = 0.5, verbosity = 0))
     models.append(XGBClassifier(n_estimators = 16, max_depth = 7, objective ='reg:squarederror', learning_rate = 0.25, gamma = 0.5, verbosity = 0))
 
     return models

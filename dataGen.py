@@ -16,7 +16,7 @@ NOISE_VARIABLES = 52
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    #printFailOn(dfFail[1], tf, DATA_POINTS)
+    printFailOn(dfFail[1], tf, DATA_POINTS)
     tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
     return tf
@@ -63,7 +63,7 @@ def generateNoiseData(DATA_POINTS):
 def generatePerfectData(DATA_POINTS):
     # Generating numerical data
     ageData       = generateNumerical(60, 100, DATA_POINTS)
-    resourceData  = generateNumerical(0, 2999, DATA_POINTS, 10)
+    resourceData  = generateNumerical(0, 3000, DATA_POINTS, 10)
     distData      = generateNumerical(0, 100, DATA_POINTS)
 
     # Generating contribution year data
@@ -82,7 +82,7 @@ def generatePerfectData(DATA_POINTS):
     # Ensuring that the dataset is perfect
     for i in range(len(df.Age)):
         if(df.loc[i, "Gender"] == 1 and df.loc[i, "Age"] < 65):
-            df.loc[i, "Age"] = random.choice(list(range(65, 100)))
+            df.loc[i, "Age"] = random.choice(list(range(65, 101)))
         
         if(df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > IN_OUT_PATIENT_DISTANCE):
             df.loc[i, "InOut"] = 0
