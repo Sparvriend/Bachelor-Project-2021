@@ -65,10 +65,9 @@ def failCondition(df, condition):
     return df
 
 def failResource(df):
-    for i in range(len(df.Age)):
-        df.loc[i, "Resource"] = random.choice(list(range(0, 6000, 10)))
-        if (df.loc[i, "Resource"] > 3000):
-            df.loc[i, "Eligible"] = 0
+    for i in range(int(len(df.Age)/2)):
+        df.loc[i, "Resource"] = random.choice(list(range(3001, 10001, 10)))
+        df.loc[i, "Eligible"] = 0
     return df
 
 # Function that sums the individual accuracies of the models
@@ -84,7 +83,7 @@ def printBoolean(test, predictions, name):
 
 # This works, but only when the amount of datapoints is sufficiently high.
 def printNumericalGraph(test, predictions, name):
-    countArr = np.zeros(6000); valueArr = np.zeros(6000)
+    countArr = np.zeros(10000); valueArr = np.zeros(10000)
 
     for j, predict in enumerate(predictions):
         for i in range((len(test.Age))):
@@ -98,7 +97,7 @@ def printNumericalGraph(test, predictions, name):
             valueArr[i] = valueArr[i]/countArr[i]
 
     # Masking to cover missing values
-    mask = np.isfinite(valueArr); xs = np.arange(6000)
+    mask = np.isfinite(valueArr); xs = np.arange(10000)
     plt.plot(xs[mask], valueArr[mask], color = 'red', linewidth = 1.0)
     
     plt.legend(["Resource"])

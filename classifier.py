@@ -20,7 +20,7 @@ def onlyTest(trainedModel, testSet, scaler):
     for i in range(len(x_test_manual.Age)):
         x_test_manual.loc[i, 'Age'] /= 100
         x_test_manual.loc[i, 'Distance'] /= 100
-        x_test_manual.loc[i, 'Resource'] /= 6000
+        x_test_manual.loc[i, 'Resource'] /= 10000
     x_test = np.concatenate([x_test_manual, x_test], axis = 1)
 
     predict = trainedModel.predict(x_test)
@@ -42,7 +42,7 @@ def trainModel(trainSet, model, scaler, type):
     for i in range(len(x_train_manual.Age)):
         x_train_manual.loc[i, 'Age'] /= 100
         x_train_manual.loc[i, 'Distance'] /= 100
-        x_train_manual.loc[i, 'Resource'] /= 6000
+        x_train_manual.loc[i, 'Resource'] /= 10000
 
     x_train = np.concatenate([x_train_manual, x_train], axis = 1)
 
@@ -81,8 +81,8 @@ def manualScaleSplit(train, test):
         x_test_manual.loc[i, 'Age'] /= 100
         x_train_manual.loc[i, 'Distance'] /= 100
         x_test_manual.loc[i, 'Distance'] /= 100
-        x_train_manual.loc[i, 'Resource'] /= 6000
-        x_test_manual.loc[i, 'Resource'] /= 6000
+        x_train_manual.loc[i, 'Resource'] /= 10000
+        x_test_manual.loc[i, 'Resource'] /= 10000
 
     x_train = np.concatenate([x_train_manual, x_train], axis = 1)
     x_test = np.concatenate([x_test_manual, x_test], axis = 1)

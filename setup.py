@@ -14,15 +14,15 @@ import time
 import numpy as np
 from datetime import timedelta
 
-DATA_POINTS = 1200
+DATA_POINTS = 25000
 # TODO:
 # - Fix results
 # - Comment code
 
 def main():
-    selectProgram()
+    #selectProgram()
     #runAll()
-    #multipleRuns(1)
+    multipleRuns(25)
 
 def testModels(learningSystems, datasets, trainedModels, allDatasets, scalers):
     allAcc = [[], [], []]
@@ -214,6 +214,10 @@ def getMLPModels():
     models = []
     models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
     models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
+
+    # Cor's models:
+    # models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))
+    # models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))
 
     return models
 

@@ -16,7 +16,7 @@ NOISE_VARIABLES = 52
 def initData(MAX_FAIL_CONDITIONS, DATA_POINTS, TYPE, LOC):
     dfFail = failConditions(generatePerfectData(DATA_POINTS), MAX_FAIL_CONDITIONS)
     tf = pd.concat([generatePerfectData(DATA_POINTS), dfFail[0]], axis = 0, ignore_index=True)
-    printFailOn(dfFail[1], tf, DATA_POINTS)
+    #printFailOn(dfFail[1], tf, DATA_POINTS)
     tf = modifyData(tf, DATA_POINTS, TYPE, LOC)
 
     return tf
@@ -111,7 +111,10 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
         df.loc[i, 'Eligible'] = 0
         # An amount of fails is generated for each row
         # The rules that it failed on are saved in conditions, so that it does not fail multiple times on the same rule
-        NR_FAIL_CONDITIONS = random.choice(list(range(1, MAX_FAIL_CONDITIONS+1)))
+        if MAX_FAIL_CONDITIONS == 6:
+            NR_FAIL_CONDITIONS = random.choice(list(range(2, MAX_FAIL_CONDITIONS+1)))
+        if MAX_FAIL_CONDITIONS == 1:
+            NR_FAIL_CONDITIONS = 1
         conditions = np.zeros(6)
 
         # Iterating over the amount of conditions that the row should fail on
@@ -159,7 +162,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
 
             if rand == 4:
                 failOn[4] += 1
-                df.loc[i, "Resource"] = random.choice(list(range(3001, 6001, 10)))
+                df.loc[i, "Resource"] = random.choice(list(range(3001, 10001, 10)))
                 continue
 
             if rand == 5:
