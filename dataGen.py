@@ -106,7 +106,7 @@ def generatePerfectData(DATA_POINTS):
 # Function that modifies a (perfect) dataset, so that it fails on one or multiple conditions
 # The six rules' failing conditions are specified here as well
 def failConditions(df, MAX_FAIL_CONDITIONS):
-    failOn = np.zeros(6)
+    failOn = [0,0,0,0,0,0]; NR_FAIL_CONDITIONS = 0
     for i in range(len(df.Age)):
         df.loc[i, 'Eligible'] = 0
         # An amount of fails is generated for each row
@@ -115,8 +115,8 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
             NR_FAIL_CONDITIONS = random.choice(list(range(2, MAX_FAIL_CONDITIONS+1)))
         if MAX_FAIL_CONDITIONS == 1:
             NR_FAIL_CONDITIONS = 1
-        conditions = np.zeros(6)
-
+        conditions = [0,0,0,0,0,0]
+ 
         # Iterating over the amount of conditions that the row should fail on
         for j in range(NR_FAIL_CONDITIONS):
             # When the data point is supposed to fail on only one condition, this if else statement makes sure that the rule it fails on is completely fairly distributed.

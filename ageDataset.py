@@ -1,4 +1,3 @@
-import pandas as pd
 import dataGen
 import random
 import matplotlib
@@ -6,16 +5,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # The eligibility for the age test dataset is not 37.5% currently
-
-def getData(DATA_POINTS):
-    print("Generating training/testing data for the neural network for the age dataset")
-    datasets = []
-    datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/age/ageDataset1'))
-    datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/age/ageDataset6'))
-    datasets.append(dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset'))
-
-    return datasets
-
 def getOnlyTest(DATA_POINTS):
     return dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset')
 
@@ -27,24 +16,23 @@ def failAge(df):
     return df
 
 # Making a graph for the age predictions, which are fully split in the paper between gender
-def printGraph(test, predictions, name):
+def printGraph(test, prediction, name):
     for p in [0,1]:
         countArr = [0 for i in range(101)]; countArr = countArr[::5]
         eligArr = countArr.copy()
         resultArr = countArr.copy()
 
-        for j, predict in enumerate(predictions):
-            for i in range(len(test.Age)):
-                if test.loc[i, "Gender"] == p: 
-                    age = test.loc[i, "Age"]
-                    eligArr[int(age/5)] += predict[i]
-                    countArr[int(age/5)] += 1
+        for i in range(len(test.Age)):
+            if test.loc[i, "Gender"] == p: 
+                age = test.loc[i, "Age"]
+                eligArr[int(age/5)] += prediction[i]
+                countArr[int(age/5)] += 1
             
-            for i in range(len(eligArr)):
-                if countArr[i] == 0:
-                    continue
-                else:
-                    resultArr[i] += eligArr[i]/countArr[i]
+        for i in range(len(eligArr)):
+            if countArr[i] == 0:
+                continue
+            else:
+                resultArr[i] += eligArr[i]/countArr[i]
         
         plt.grid()
         if p == 0:

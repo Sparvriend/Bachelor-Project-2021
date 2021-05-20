@@ -1,36 +1,9 @@
 import dataGen
 import random
-import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-def getData(DATA_POINTS, rule):
-    datasets = []
-    
-    if rule == 2:
-        print("Generating training/testing data for the neural network for the contribution dataset")
-        datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/contribution/contributionDataset1'))
-        datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/contribution/contributionDataset6'))
-        datasets.append(dataGen.modifyData(failContribution(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/contribution/contributionDataset'))
-    if rule == 3:
-        print("Generating training/testing data for the neural network for the spouse dataset")
-        datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/spouse/spouseDataset1'))
-        datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/spouse/spouseDataset6'))
-        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Spouse"), DATA_POINTS, 'TEST', 'DataRes/spouse/spouseDataset'))
-    if rule == 4:
-        print("Generating training/testing data for the neural network for the residency dataset")
-        datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/residency/residencyDataset1'))
-        datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/residency/residencyDataset6'))
-        datasets.append(dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Residency"), DATA_POINTS, 'TEST', 'DataRes/residency/residencyDataset'))
-    if rule == 5:
-        print("Generating training/testing data for the neural network for the resource dataset")
-        datasets.append(dataGen.initData(1, DATA_POINTS, 'TRAIN', 'DataRes/resource/resourceDataset1'))
-        datasets.append(dataGen.initData(6, DATA_POINTS, 'TRAIN', 'DataRes/resource/resourceDataset6'))
-        datasets.append(dataGen.modifyData(failResource(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/resource/resourceDataset'))
-
-    return datasets
 
 def getOnlyTest(DATA_POINTS, rule):
     if rule == 2:
@@ -70,25 +43,13 @@ def failResource(df):
         df.loc[i, "Eligible"] = 0
     return df
 
-# Function that sums the individual accuracies of the models
-def printBoolean(test, predictions, name):
-    value = 0; counter = 0
-
-    for j, predict in enumerate(predictions):
-        for i in range(len(test.Age)):
-            counter += 1
-            if predict[i] == test.loc[i, "Eligible"]:
-                value += 1
-    print("Accuracy value for the boolean rule " + name + " = " + str(value/counter*100) + " %")
-
 # This works, but only when the amount of datapoints is sufficiently high.
-def printNumericalGraph(test, predictions, name):
+def printNumericalGraph(test, prediction, name):
     countArr = np.zeros(10000); valueArr = np.zeros(10000)
 
-    for j, predict in enumerate(predictions):
-        for i in range((len(test.Age))):
-            valueArr[test.loc[i, "Resource"]] += predict[i]
-            countArr[test.loc[i, "Resource"]] += 1
+    for i in range((len(test.Age))):
+        valueArr[test.loc[i, "Resource"]] += prediction[i]
+        countArr[test.loc[i, "Resource"]] += 1
 
     for i in range(len(valueArr)):
         if countArr[i] == 0:
