@@ -14,7 +14,8 @@ def failDistance(df):
             df.loc[i, "Eligible"] = 0
     return df
 
-def printGraph(test, prediction, name):
+def getResultArr(test, prediction):
+    out = []
     for p in [0,1]:
         countArr = [0 for i in range(101)]
         eligArr = countArr.copy()
@@ -31,13 +32,13 @@ def printGraph(test, prediction, name):
                 continue
             else:
                 resultArr[i] += eligArr[i]/countArr[i]
+        out.append(resultArr)
+    return out
         
-        plt.grid()
-        if p == 0:
-            plt.plot(list(range(0, 101)), resultArr, color = 'red', linewidth = 1.0)
-        else:
-            plt.plot(list(range(0, 101)), resultArr, '--', color = 'blue', linewidth = 1.0)
-
+def printGraph(resultArrs, name):
+    plt.grid()
+    plt.plot(list(range(0, 101)), resultArrs[0], color = 'red', linewidth = 1.0)
+    plt.plot(list(range(0, 101)), resultArrs[1], '--', color = 'blue', linewidth = 1.0)
     plt.legend(["out-patients", "in-patients"])
     plt.ylabel('Output') 
     plt.xlabel('Distance')

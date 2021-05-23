@@ -12,7 +12,8 @@ import time
 import numpy as np
 from datetime import timedelta
 
-DATA_POINTS = 25000
+DATA_POINTS = 2500
+ITERATIONS = 2
 LEARNING_SYSTEMS = ["MLP", "Random_Forest", "XGBoost"]
 DATASET_NAMES = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
 
@@ -20,14 +21,58 @@ DATASET_NAMES = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resour
 # - Comment code
 # - Make graphs so that it sums over iterations
 # - Combine special datasets into one .py file?
+# - XGBoost got 99% accuracy (SF trained) on distance dataset, it seems as if it is unable to find the right solution.
+#   But when it does find the right solution, it is very capable of getting it completely right.
 
 def main():
     #selectProgram()
     #runAll()
-    multipleRuns(10)
+    multipleRuns()
+
+def getResultArr(res, test, ds):
+    if ds in [1, 6]:
+        if ds == 1:
+            out = ageDataset.getResultArr(test, res)
+        # if ds == 5:
+        #     out = checkDatasets.getResultArr(test, res)
+        if ds == 6:
+            out = distanceDataset.getResultArr(test, res)
+        return out
+
+def divAll(total):
+    # Same issue as with addToSum but with dividing instead of multiplying
+    for i in list(range(len(total))):
+        for j in list(range(len(total[i]))):
+            for p in list(range(len(total[i][j]))):
+                for q in list(range(len(total[i][j][p]))):
+                    for r in list(range(len(total[i][j][p][q]))):
+                        total[i][j][p][q][r] /= float(ITERATIONS**float(1/3))
+    return total
+
+def addToSum(total, add):
+    # I have no idea why, but if I dont divide by 3, the total returns the added value *3.
+    # In the loop the value is fine, but outside it is *3 all of the sudden.
+    for i in list(range(len(total))):
+        for j in list(range(len(total[i]))):
+            for p in list(range(len(total[i][j]))):
+                for q in list(range(len(total[i][j][p]))):
+                    for r in list(range(len(total[i][j][p][q]))):
+                        total[i][j][p][q][r] += float(add[i][j][p][q][r]/3)
+    return total
+
+def printGraphs(summedResultArrs):
+    for i in list(range(len(summedResultArrs))):
+        print(summedResultArrs[i])
+        ageDataset.printGraph(summedResultArrs[i][0][0], "Age" + LEARNING_SYSTEMS[i] + "SFtrained")
+        ageDataset.printGraph(summedResultArrs[i][0][1], "Age" + LEARNING_SYSTEMS[i] + "MFtrained")
+        distanceDataset.printGraph(summedResultArrs[i][1][0], "Distance" + LEARNING_SYSTEMS[i] + "SFtrained")
+        distanceDataset.printGraph(summedResultArrs[i][1][1], "Distance" + LEARNING_SYSTEMS[i] + "MFtrained")
+        # checkDatasets.printGraph(summedResultArrs[i][2][0], "Resource" + LEARNING_SYSTEMS[i] + "SFtrained")
+        # checkDatasets.printGraph(summedResultArrs[i][2][1], "Resource" + LEARNING_SYSTEMS[i] + "MFtrained")
 
 def testModels(trainedModels, allDatasets, scalers):
-    allAcc = [[], [], []]
+    # Remove these three double arrays
+    allAcc = [[], [], []]; allResultArrs = []; fullResultArrs = []
     for i in list(range(len(LEARNING_SYSTEMS))):
         totalAcc = []
         # The normal computation is done manually
@@ -40,12 +85,19 @@ def testModels(trainedModels, allDatasets, scalers):
 
         for j in list(range(len(DATASET_NAMES)))[1:]:
             out = [classifier.onlyTest(trainedModels[i][0], allDatasets[j], scalers[0]), classifier.onlyTest(trainedModels[i][1], allDatasets[j], scalers[1])]
+
             totalAcc = []
             for result in out:
                 totalAcc.append([result[1]])
             allAcc[i].append(totalAcc)
 
-    return allAcc
+            totalResultArr = [getResultArr(out[0][0], allDatasets[j], j), getResultArr(out[1][0], allDatasets[j], j)]
+            if totalResultArr != [None, None]:         
+                allResultArrs.append(totalResultArr)
+        fullResultArrs.append(allResultArrs)
+        allResultArrs = []
+
+    return (fullResultArrs, allAcc)
 
 def printFinalAccuracy(allAcc):
     # This is seperated from the other loops because of printing issues 
@@ -70,46 +122,44 @@ def runAll(PRINT_TO_FILE = 1):
     for j in range(len(DATASET_NAMES)):
         allDatasets.append(getOnlyTest(j))
 
-    allAcc = testModels(trainedModels, allDatasets, scalers)
+    res = testModels(trainedModels, allDatasets, scalers)
 
     if PRINT_TO_FILE == 1:
-        printFinalAccuracy(allAcc)
+        printFinalAccuracy(res[1])
 
-    return allAcc
+    return res
 
-def multipleRuns(iterations):
+def multipleRuns():
     startTime = time.time()
-    allResults = []; totalStDev = []; wrongAccBool = False
+    summedResultArrs = []; totalStDev = []
 
-    for p in range(iterations):
+    for p in range(ITERATIONS):
         print("################")
         print("ON ITERATION: " + str(p))
         print("################")
-        res = runAll(0)
+        res = runAll(0); allAcc = res[1]
         if p == 0:
-            allResults = res
-            if res[0][0][0][0] < 0.6:
-                wrongAccBool = True
+            allResults = allAcc
+            summedResultArrs = res[0]
         else:
-            if res[0][0][0][0] < 0.6:
-                wrongAccBool = True
             for i in list(range(len(LEARNING_SYSTEMS))):
                 for j in list(range(len(DATASET_NAMES))):
-                    for q in list(range(len(res[i][j]))):
-                        allResults[i][j][q].append(res[i][j][q])
+                    for q in list(range(len(allAcc[i][j]))):
+                        allResults[i][j][q].append(allAcc[i][j][q])
+            summedResultArrs = addToSum(summedResultArrs, res[0])
 
     for i in list(range(len(LEARNING_SYSTEMS))):
         totalStDev.append([])
         for j in list(range(len(DATASET_NAMES))):
             totalStDev[i].append([])
-            for q in list(range(0, len(res[i][j]))):
+            for q in list(range(0, len(allAcc[i][j]))):
                 totalStDev[i][j].append([])
-                totalStDev[i][j][q] = round(float(np.std(allResults[i][j][q])), 2)
-                allResults[i][j][q] = round(float(np.mean(allResults[i][j][q])), 2)
-                
-    print(wrongAccBool)
+                totalStDev[i][j][q] = round(float(np.std(allResults[i][j][q]))*100, 4)
+                allResults[i][j][q] = round(float(np.mean(allResults[i][j][q]))*100, 4)
+
+    printGraphs(divAll(summedResultArrs))
     print("Time elapsed: " + str(timedelta(seconds = time.time() - startTime)))
-    sys.stdout = open("DataRes/totalAccuracy" + str(iterations) + "iterations.txt", "w")
+    sys.stdout = open("DataRes/totalAccuracy" + str(ITERATIONS) + "iterations.txt", "w")
 
     for i in list(range(len(LEARNING_SYSTEMS))):
         for j in list(range(len(DATASET_NAMES))):
@@ -159,9 +209,6 @@ def getModels(ls):
         print("Getting MLP models")
         models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
         models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', alpha = 0.00008, learning_rate_init = 0.008, batch_size = 26, max_iter = 3000))
-        # Cor's models:
-        # models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))
-        # models.append(MLPClassifier(hidden_layer_sizes=(24, 10, 3), activation = 'logistic', solver = 'adam', learning_rate_init = 0.001, batch_size = 50, max_iter = 50000))
     if ls == 1:
         print("Getting Random Forest models")
         models.append(RandomForestClassifier(n_estimators = 16, max_depth = 19, max_leaf_nodes = 17, min_samples_split = 6, random_state = 0))
@@ -183,19 +230,19 @@ def runSingle(ls, ds, train, test, models):
     if ds == 1:
         print("On age dataset")
         out = runClassifier(trainedModels, test, scalers)
-        ageDataset.printGraph(test, out[0][0], 'SF' + name)
-        ageDataset.printGraph(test, out[1][0], 'MF' + name)
+        res1 = ageDataset.getResultArr(test, out[0][0]); ageDataset.printGraph(res1, 'SF' + name)
+        res2 = ageDataset.getResultArr(test, out[1][0]); ageDataset.printGraph(res2, 'MF' + name)
     if ds > 1 and ds < 6:
         print("One one of the check datasets")
         out = runClassifier(trainedModels, test, scalers)
         if ds == 5:
-            checkDatasets.printNumericalGraph(test, out[0][0], 'SF' + name)
-            checkDatasets.printNumericalGraph(test, out[1][0], 'MF' + name)
+            res1 = checkDatasets.getResultArr(test, out[0][0]); checkDatasets.printGraph(res1, 'SF' + name)
+            res2 = checkDatasets.getResultArr(test, out[0][0]); checkDatasets.printGraph(res2, 'MF' + name)
     if ds == 6:
         print("On distance dataset")
         out = runClassifier(trainedModels, test, scalers)
-        distanceDataset.printGraph(test, out[0][0], 'SF' + name)
-        distanceDataset.printGraph(test, out[1][0], 'MF' + name)
+        res1 = distanceDataset.getResultArr(test, out[0][0]); distanceDataset.printGraph(res1, 'SF' + name)
+        res2 = distanceDataset.getResultArr(test, out[1][0]); distanceDataset.printGraph(res2, 'MF' + name)
 
 # Function that runs the normal dataset
 def runClassifierNormal(trainedModels, testSets, scalers):

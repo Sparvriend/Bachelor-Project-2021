@@ -15,8 +15,8 @@ def failAge(df):
             df.loc[i, "Eligible"] = 0
     return df
 
-# Making a graph for the age predictions, which are fully split in the paper between gender
-def printGraph(test, prediction, name):
+def getResultArr(test, prediction):
+    out = []
     for p in [0,1]:
         countArr = [0 for i in range(101)]; countArr = countArr[::5]
         eligArr = countArr.copy()
@@ -33,13 +33,13 @@ def printGraph(test, prediction, name):
                 continue
             else:
                 resultArr[i] += eligArr[i]/countArr[i]
-        
-        plt.grid()
-        if p == 0:
-            plt.plot(list(range(0, 105, 5)), resultArr, '--', color = 'red', linewidth = 1.0)
-        else:
-            plt.plot(list(range(0, 105, 5)), resultArr, color = 'blue', linewidth = 1.0)
+        out.append(resultArr)
+    return out
 
+def printGraph(resultArrs, name):
+    plt.grid()
+    plt.plot(list(range(0, 105, 5)), resultArrs[0], '--', color = 'red', linewidth = 1.0)
+    plt.plot(list(range(0, 105, 5)), resultArrs[1], color = 'blue', linewidth = 1.0)
     plt.legend(["Women", "Men"])
     plt.ylabel('Output') 
     plt.xlabel('Age')

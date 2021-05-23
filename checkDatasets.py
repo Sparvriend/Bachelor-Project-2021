@@ -44,7 +44,7 @@ def failResource(df):
     return df
 
 # This works, but only when the amount of datapoints is sufficiently high.
-def printNumericalGraph(test, prediction, name):
+def getResultArr(test, prediction):
     countArr = np.zeros(10000); valueArr = np.zeros(10000)
 
     for i in range((len(test.Age))):
@@ -57,10 +57,12 @@ def printNumericalGraph(test, prediction, name):
         else:
             valueArr[i] = valueArr[i]/countArr[i]
 
+    return valueArr
+
+def printGraph(valueArr, name):
     # Masking to cover missing values
     mask = np.isfinite(valueArr); xs = np.arange(10000)
     plt.plot(xs[mask], valueArr[mask], color = 'red', linewidth = 1.0)
-    
     plt.legend(["Resource"])
     plt.ylabel('Output') 
     plt.xlabel('Resource')
