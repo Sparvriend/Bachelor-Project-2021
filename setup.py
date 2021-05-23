@@ -40,29 +40,25 @@ def getResultArr(res, test, ds):
         return out
 
 def divAll(total):
-    # Same issue as with addToSum but with dividing instead of multiplying
     for i in list(range(len(total))):
         for j in list(range(len(total[i]))):
             for p in list(range(len(total[i][j]))):
                 for q in list(range(len(total[i][j][p]))):
                     for r in list(range(len(total[i][j][p][q]))):
-                        total[i][j][p][q][r] /= float(ITERATIONS**float(1/3))
+                        total[i][j][p][q][r] /= ITERATIONS
     return total
 
 def addToSum(total, add):
-    # I have no idea why, but if I dont divide by 3, the total returns the added value *3.
-    # In the loop the value is fine, but outside it is *3 all of the sudden.
     for i in list(range(len(total))):
         for j in list(range(len(total[i]))):
             for p in list(range(len(total[i][j]))):
                 for q in list(range(len(total[i][j][p]))):
                     for r in list(range(len(total[i][j][p][q]))):
-                        total[i][j][p][q][r] += float(add[i][j][p][q][r]/3)
+                        total[i][j][p][q][r] += add[i][j][p][q][r]
     return total
 
 def printGraphs(summedResultArrs):
     for i in list(range(len(summedResultArrs))):
-        print(summedResultArrs[i])
         ageDataset.printGraph(summedResultArrs[i][0][0], "Age" + LEARNING_SYSTEMS[i] + "SFtrained")
         ageDataset.printGraph(summedResultArrs[i][0][1], "Age" + LEARNING_SYSTEMS[i] + "MFtrained")
         distanceDataset.printGraph(summedResultArrs[i][1][0], "Distance" + LEARNING_SYSTEMS[i] + "SFtrained")
