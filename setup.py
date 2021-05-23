@@ -11,9 +11,10 @@ import sys
 import time
 import numpy as np
 from datetime import timedelta
+from joblib import Parallel, delayed
 
-DATA_POINTS = 2500
-ITERATIONS = 2
+DATA_POINTS = 25000
+ITERATIONS = 5
 LEARNING_SYSTEMS = ["MLP", "Random_Forest", "XGBoost"]
 DATASET_NAMES = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
 
@@ -125,30 +126,52 @@ def runAll(PRINT_TO_FILE = 1):
 
     return res
 
-def multipleRuns():
-    startTime = time.time()
-    summedResultArrs = []; totalStDev = []
+def runIteration():
+    res = runAll(0)
+    return res[0], res[1]
+
+def runIterationsPar():
+    input = Parallel(n_jobs=-2)(delayed(runIteration)() for i in range(ITERATIONS))
+    total = input[0][0]; outResults = input[0][1]
+
+    for i in range(len(input))[1:]:
+        total = addToSum(total, input[i][0])
+        for j in list(range(len(LEARNING_SYSTEMS))):
+            for p in list(range(len(DATASET_NAMES))):
+                for q in list(range(len(input[i][1][j][p]))):
+                    outResults[j][p][q].append(input[i][1][j][p][q])
+
+    return total, outResults
+
+def runIterationsSeq():
+    summedResultArrs = []
 
     for p in range(ITERATIONS):
-        print("################")
-        print("ON ITERATION: " + str(p))
-        print("################")
-        res = runAll(0); allAcc = res[1]
+        print("Iteration: " + str(p))
+        res = runAll(0)
         if p == 0:
-            allResults = allAcc
+            allResults = res[1]
             summedResultArrs = res[0]
         else:
             for i in list(range(len(LEARNING_SYSTEMS))):
                 for j in list(range(len(DATASET_NAMES))):
-                    for q in list(range(len(allAcc[i][j]))):
-                        allResults[i][j][q].append(allAcc[i][j][q])
+                    for q in list(range(len(res[1][i][j]))):
+                        allResults[i][j][q].append(res[1][i][j][q])
             summedResultArrs = addToSum(summedResultArrs, res[0])
+    
+    return summedResultArrs, allResults
+
+def multipleRuns():
+    startTime = time.time(); totalStDev = []
+
+    #summedResultArrs, allResults = runIterationsSeq()
+    summedResultArrs, allResults = runIterationsPar()
 
     for i in list(range(len(LEARNING_SYSTEMS))):
         totalStDev.append([])
         for j in list(range(len(DATASET_NAMES))):
             totalStDev[i].append([])
-            for q in list(range(0, len(allAcc[i][j]))):
+            for q in list(range(0, len(allResults[i][j]))):
                 totalStDev[i][j].append([])
                 totalStDev[i][j][q] = round(float(np.std(allResults[i][j][q]))*100, 4)
                 allResults[i][j][q] = round(float(np.mean(allResults[i][j][q]))*100, 4)
