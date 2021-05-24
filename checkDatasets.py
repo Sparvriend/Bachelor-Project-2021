@@ -5,23 +5,22 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# This file is used to generate data for either one of the 4 conditions that were not included in the original Bench-Capon paper.
+# It can also be used to retrieve the result array for the resource graph. Which can then be graphed with the printGraph function.
+
 def getOnlyTest(DATA_POINTS, rule):
     if rule == 2:
         return dataGen.modifyData(failContribution(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/contribution/contributionDataset')
-
     if rule == 3:
         return dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Spouse"), DATA_POINTS, 'TEST', 'DataRes/spouse/spouseDataset')
-
     if rule == 4:
         return dataGen.modifyData(failCondition(dataGen.generatePerfectData(DATA_POINTS*2), "Residency"), DATA_POINTS, 'TEST', 'DataRes/residency/residencyDataset')
-
     if rule == 5:
         return dataGen.modifyData(failResource(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/resource/resourceDataset')
 
 def failContribution(df):
     for i in range(int(len(df.Age)/2)):
-        df.loc[i, "Eligible"] = 0
-        contrYears = [0,0,0,0,0]
+        df.loc[i, "Eligible"] = 0; contrYears = [0,0,0,0,0]
         yearsPaid = random.choice(list(range(0, 4)))
 
         for q in range(yearsPaid):
@@ -47,7 +46,7 @@ def failResource(df):
 def getResultArr(test, prediction):
     countArr = np.zeros(10000); valueArr = np.zeros(10000)
 
-    for i in range((len(test.Age))):
+    for i in range(len(test.Age)):
         valueArr[test.loc[i, "Resource"]] += prediction[i]
         countArr[test.loc[i, "Resource"]] += 1
 
@@ -57,12 +56,12 @@ def getResultArr(test, prediction):
         else:
             valueArr[i] = valueArr[i]/countArr[i]
 
-    return valueArr
+    return [valueArr]
 
 def printGraph(valueArr, name):
     # Masking to cover missing values
-    mask = np.isfinite(valueArr); xs = np.arange(10000)
-    plt.plot(xs[mask], valueArr[mask], color = 'red', linewidth = 1.0)
+    mask = np.isfinite(valueArr[0]); xs = np.arange(10000)
+    plt.plot(xs[mask], valueArr[0][mask], color = 'red', linewidth = 1.0)
     plt.legend(["Resource"])
     plt.ylabel('Output') 
     plt.xlabel('Resource')

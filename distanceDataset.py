@@ -4,6 +4,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# This file is used to generate data for the distance dataset. Besides doing that, it can also be used to retrieve,
+# a result array, which contains the values to be graphed, which can then be graphed with the printGraph function.
+
 def getOnlyTest(DATA_POINTS):
     return dataGen.modifyData(failDistance(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/distance/distanceDataset')
 

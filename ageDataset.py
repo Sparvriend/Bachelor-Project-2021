@@ -4,7 +4,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# The eligibility for the age test dataset is not 37.5% currently
+# This file is used to generate data for the age dataset. Besides doing that, it can also be used to retrieve,
+# a result array, which contains the values to be graphed, which can then be graphed with the printGraph function.
+
 def getOnlyTest(DATA_POINTS):
     return dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset')
 
@@ -19,8 +21,7 @@ def getResultArr(test, prediction):
     out = []
     for p in [0,1]:
         countArr = [0 for i in range(101)]; countArr = countArr[::5]
-        eligArr = countArr.copy()
-        resultArr = countArr.copy()
+        eligArr = countArr.copy(); resultArr = countArr.copy()
 
         for i in range(len(test.Age)):
             if test.loc[i, "Gender"] == p: 

@@ -1,5 +1,8 @@
 import dataGen
 
+# This file can be used to generate either training or testing data for the models to be trained/tested on.
+# The datasets are either single fail or multiple fail.
+
 def getOnlyTrain(DATA_POINTS):
     print("Generating training data for the learning systems for the normal dataset")
     datasets = []
