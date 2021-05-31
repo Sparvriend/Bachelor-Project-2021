@@ -117,7 +117,7 @@ def failConditions(df, MAX_FAIL_CONDITIONS):
             while conditions[rand] == 1:
                 rand = random.choice(list(range(0, 6)))
             conditions[rand] = 1
-
+            
             if rand == 0:
                 failOn[0] += 1
                 if df.loc[i, "Gender"] == 1:

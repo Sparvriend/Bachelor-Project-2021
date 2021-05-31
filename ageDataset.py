@@ -11,10 +11,12 @@ def getOnlyTest(DATA_POINTS):
     return dataGen.modifyData(failAge(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/age/ageDataset')
 
 def failAge(df):
-    for i in range(len(df.Age)):
-        df.loc[i, "Age"] = random.choice(list(range(0, 105, 5)))
-        if (df.loc[i, "Gender"] == 0 and df.loc[i, "Age"] < 60) or (df.loc[i, "Gender"] == 1 and df.loc[i, "Age"] < 65):
-            df.loc[i, "Eligible"] = 0
+    for i in range(int(len(df.Age)*0.625)):
+        if df.loc[i, "Gender"] == 1:
+            df.loc[i, "Age"] = random.choice(list(range(0, 65, 5)))
+        if df.loc[i, "Gender"] == 0:
+            df.loc[i, "Age"] = random.choice(list(range(0, 60, 5)))
+        df.loc[i, "Eligible"] = 0
     return df
 
 def getResultArr(test, prediction):
@@ -39,6 +41,7 @@ def getResultArr(test, prediction):
 
 def printGraph(resultArrs, name):
     plt.grid()
+    plt.ylim(0.0, 1.05)
     plt.plot(list(range(0, 105, 5)), resultArrs[0], '--', color = 'red', linewidth = 1.0)
     plt.plot(list(range(0, 105, 5)), resultArrs[1], color = 'blue', linewidth = 1.0)
     plt.legend(["Women", "Men"])

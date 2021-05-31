@@ -14,8 +14,8 @@ import time
 
 # Project constants. Note that datasets are DATA_POINTS*2 in size, this is due to most datasets being 50% eligible, hence it being only half.
 # LEARNING_SYSTEMS and DATASET_NAMES are only used for naming graphs and for getting the amount of datasets/learning systems to test on.
-DATA_POINTS = 10000
-ITERATIONS = 4
+DATA_POINTS = 25000
+ITERATIONS = 100
 LEARNING_SYSTEMS = ["MLP", "Random_Forest", "XGBoost"]
 DATASET_NAMES = ["Normal", "Age", "Contribution", "Spouse", "Residency", "Resource", "Distance"]
 
@@ -50,7 +50,7 @@ def multipleRuns():
 # Function that runs ITERATIONS in parallel by using the Parallel package.
 # It combines the results of each iteration.
 def runIterationsPar():
-    input = Parallel(n_jobs=-2)(delayed(runIteration)() for i in range(ITERATIONS))
+    input = Parallel(n_jobs=-8)(delayed(runIteration)() for i in range(ITERATIONS))
     total = input[0][0]; outResults = input[0][1]
 
     for i in range(len(input))[1:]:

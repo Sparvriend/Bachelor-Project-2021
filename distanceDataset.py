@@ -11,10 +11,14 @@ def getOnlyTest(DATA_POINTS):
     return dataGen.modifyData(failDistance(dataGen.generatePerfectData(DATA_POINTS*2)), DATA_POINTS, 'TEST', 'DataRes/distance/distanceDataset')
 
 def failDistance(df):
-    for i in range(len(df.Age)):
-        df.loc[i, "Distance"] = random.choice(list(range(0, 101)))
-        if (df.loc[i, "InOut"] == 0 and df.loc[i, "Distance"] <= 50) or (df.loc[i, "InOut"] == 1 and df.loc[i, "Distance"] > 50):
-            df.loc[i, "Eligible"] = 0
+    for i in range(int(len(df.Age)/2)):
+        if i > int(len(df.Age)/4):
+            df.loc[i, "Distance"] = random.choice(list(range(0, 51)))
+            df.loc[i, "InOut"] = 0
+        if i <= int(len(df.Age)/4):
+            df.loc[i, "Distance"] = random.choice(list(range(51, 101)))
+            df.loc[i, "InOut"] = 1
+        df.loc[i, "Eligible"] = 0
     return df
 
 def getResultArr(test, prediction):
@@ -40,6 +44,7 @@ def getResultArr(test, prediction):
         
 def printGraph(resultArrs, name):
     plt.grid()
+    plt.ylim(0.0, 1.05)
     plt.plot(list(range(0, 101)), resultArrs[0], color = 'red', linewidth = 1.0)
     plt.plot(list(range(0, 101)), resultArrs[1], '--', color = 'blue', linewidth = 1.0)
     plt.legend(["out-patients", "in-patients"])

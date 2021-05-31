@@ -30,10 +30,9 @@ def failContribution(df):
     return df
 
 def failCondition(df, condition):
-    for i in range(len(df.Age)):
-        df.loc[i, condition] = random.choice(list(range(0, 2)))
-        if (df.loc[i, condition] == 0):
-            df.loc[i, "Eligible"] = 0
+    for i in range(int(len(df.Age)/2)):
+        df.loc[i, condition] = 0
+        df.loc[i, "Eligible"] = 0
     return df
 
 def failResource(df):
@@ -61,6 +60,7 @@ def getResultArr(test, prediction):
 def printGraph(valueArr, name):
     # Masking to cover missing values
     mask = np.isfinite(valueArr[0]); xs = np.arange(10000)
+    plt.ylim(0.0, 1.05)
     plt.plot(xs[mask], valueArr[0][mask], color = 'red', linewidth = 1.0)
     plt.legend(["Resource"])
     plt.ylabel('Output') 
