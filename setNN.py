@@ -1,9 +1,7 @@
-import pandas as pd
-import keras
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+import numpy as np
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score
 
 # Neural network setup Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
@@ -25,17 +23,27 @@ def testDataset(train, test, iterations):
     # Returning the prediction, used for the age and distance datasets
     return (predictions, accuracies)
 
-# Function that defines the testing/training dataset and splits those into independent and the dependent variable
-# Then it scales the data with a standard scaler and then returns the split and scaled data
-def manualScaleSplit(train, test):
-    x_train = train.drop('Eligibility', axis = 1); x_test = test.drop('Eligibility', axis = 1)
-    y_train = train['Eligibility']; y_test = test['Eligibility']
+def scaleData(data, scaler):
+    x_train = data.drop('Eligible', axis = 1); y_train = data['Eligible']
+    x_train_manual = x_train[['Age', 'Resource', 'Distance']]
+    x_train = x_train.drop(['Age', 'Resource', 'Distance'], axis = 1)
+    x_train = scaler.transform(x_train)
 
-    stdScaler = StandardScaler()
-    stdScaler.fit(x_train)
-    StandardScaler(copy = True, with_mean = True, with_std = True)
-    x_train = stdScaler.transform(x_train)
-    x_test = stdScaler.transform(x_test)
+    for i in range(len(x_train_manual.Age)):
+        x_train_manual.loc[i, 'Age'] /= 100
+        x_train_manual.loc[i, 'Distance'] /= 100
+        x_train_manual.loc[i, 'Resource'] /= 10000
+    return (np.concatenate([x_train_manual, x_train], axis = 1), y_train)
+
+def getScaler(data):
+    x_train = data.drop(['Age', 'Resource', 'Distance', 'Eligible'], axis = 1)
+    scaler = MinMaxScaler(); scaler.fit(x_train)
+    return scaler
+
+def manualScaleSplit(train, test):
+    scaler = getScaler(train)
+    x_train, y_train = scaleData(train, scaler)
+    x_test, y_test = scaleData(test, scaler)
 
     return (x_train, x_test, y_train, y_test)
 
@@ -66,6 +74,3 @@ def fitModels(models, x_train, x_test, y_train, y_test):
         accuracies.append(accuracy)
 
     return (predicts, accuracies)
-
-if __name__ == "__main__":
-    main()

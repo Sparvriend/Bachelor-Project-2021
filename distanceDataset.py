@@ -36,9 +36,14 @@ def main():
 
 # Resetting the age to a value which can fail
 def addFail(df):
-    for i in range(len(df.Age)):
-        df.loc[i, "Distance"] = random.choice(list(range(0, 101)))
-
+    for i in range(int(len(df.Age)/2)):
+        if i > int(len(df.Age)/4):
+            df.loc[i, "Distance"] = random.choice(list(range(0, 51)))
+            df.loc[i, "InOut"] = 0
+        if i <= int(len(df.Age)/4):
+            df.loc[i, "Distance"] = random.choice(list(range(51, 101)))
+            df.loc[i, "InOut"] = 1
+        df.loc[i, "Eligible"] = 0
     return df
 
 # Distance graph generation

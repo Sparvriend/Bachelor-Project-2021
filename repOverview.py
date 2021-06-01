@@ -6,10 +6,12 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import time
+from datetime import timedelta
 
-iterations = 100
-TESTING_DATA_POINTS = 1000
-TRAINING_DATA_POINTS = 1200
+iterations = 2
+TESTING_DATA_POINTS = 2000
+TRAINING_DATA_POINTS = 2400
 
 # Replication overview Python file made for the Bachelor Project by Timo Wahl (s3812030)
 # This file is used to average over multiple data set runs and print the accuracies/graphs over those runs
@@ -18,25 +20,28 @@ TRAINING_DATA_POINTS = 1200
 # - implement age graph averaging (runAgeDataset())
 
 def main():
+    startTime = time.time()
     #runNormalDataset()
     #runDistanceDataset()
-    runAgeDataset()
+    #runAgeDataset()
+    print("Time elapsed: " + str(timedelta(seconds = time.time() - startTime)))
 
-def getAvgAccuracy(sf, mf):
-    specPrints = ["Single layer neural network accuracy: ", "Double layer neural network accuracy: ", "Triple layer neural network accuracy: "]
-    typeOfNN = ["Trained on single fail, tested on distance dataset", "Trained on multiple fail, tested on distance dataset"]
+def getAvgAccuracy(sf, mf, type):
+    specPrints = ["Single layer neural network result: ", "Double layer neural network result: ", "Triple layer neural network result: "]
+    typeOfNN = ["Trained on single fail, tested on " + str(type), "Trained on multiple fail, tested on " + str(type)]
 
-    final = [[0,0,0],[0,0,0]]
+    final = [[[],[],[]],[[],[],[]]]
     for i in range(iterations):
         for j in range(len(sf[i])):
-            final[0][j] += sf[i][j]
-            final[1][j] += mf[i][j]
+            final[0][j].append(sf[i][j])
+            final[1][j].append(mf[i][j])
 
     print("ITERATIONS: " + str(iterations))
     for i, NNtype in enumerate(final):
+        print("==================================================================================")
         print(typeOfNN[i])
         for j, net in enumerate(NNtype):
-            print(specPrints[j] + str(net/iterations))
+            print(specPrints[j] + str(round(float(np.mean(net))*100, 4)) + " " + str(round(float(np.std(net))*100, 4)))
 
 # Function that runs the age dataset multiple times
 # It averages the results over the amount of iterations and then prints the result
@@ -83,7 +88,7 @@ def runAgeDataset():
     plt.plot(list(range(0, 105, 5)), graphArrFS[1], color = colours[1], linewidth = 1.0)
     ageDataset.finalizeGraph(legend, "Single fail train, age test, all nets over " + str(iterations) + " iterations")
 
-    getAvgAccuracy(accTotalSF, accTotalMF)
+    getAvgAccuracy(accTotalSF, accTotalMF, "Age")
 
 # Function that runs the distance dataset multiple times
 # It averages the results over the amount of iterations and then prints the result
@@ -98,7 +103,7 @@ def runDistanceDataset():
         totalResult.append(distanceDataset.main())
         accTotalSF.append(totalResult[i][3])
         accTotalMF.append(totalResult[i][4])
-    getAvgAccuracy(accTotalSF, accTotalMF)
+    getAvgAccuracy(accTotalSF, accTotalMF, "Distance")
 
     for q in range(2):
         countArrOut = [0 for i in range(101)]; eligArrOut = countArrOut.copy(); resultArrOut = countArrOut.copy()
@@ -123,14 +128,13 @@ def runDistanceDataset():
         plt.plot(list(range(0, 101)), resultArrOut, color = 'red', linewidth = 1.0)
         plt.plot(list(range(0, 101)), resultArrIn, '--', color = 'blue', linewidth = 1.0)
         distanceDataset.finalizeGraph(legend, name[q])
-    
 
 # Function that runs the normal dataset multiple times
 def runNormalDataset():
-    final = [[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
+    final = [[[],[],[]],[[],[],[]],[[],[],[]],[[],[],[]]]
     genPrints = ["Training on multiple fail, testing on multiple fail final result", "Training on multiple fail, testing on single fail final result",
     "Training on single fail, testing on multiple fail final result", "Training on single fail, testing on single fail final result"]
-    specPrints = ["Single layer neural network accuracy: ", "Double layer neural network accuracy: ", "Triple layer neural network accuracy: "]
+    specPrints = ["Single layer neural network result: ", "Double layer neural network result: ", "Triple layer neural network result: "]
 
     # Adding up accuracies over iterations
     for i in range(iterations):
@@ -138,7 +142,7 @@ def runNormalDataset():
         accuracies = normalDataset.main()
         for j, accuracy in enumerate(accuracies):
             for p, prediction in enumerate(accuracy):
-                final[j][p] += prediction
+                final[j][p].append(prediction)
 
     # Averaging over iterations
     print("ITERATIONS: " + str(iterations))
@@ -146,8 +150,7 @@ def runNormalDataset():
         print("==================================================================================")
         print(genPrints[i])
         for j in range(len(final[i])):
-            final[i][j] /= iterations
-            print(specPrints[j] + str(final[i][j]))
+            print(specPrints[j] + str(round(float(np.mean(final[i][j]))*100, 4)) + " " + str(round(float(np.std(final[i][j]))*100, 4)))
 
 if __name__ == "__main__":
     main()

@@ -14,7 +14,6 @@ MAX_ITERATIONS = 3000
 # Age data set generation Python file made for the Bachelor Project by Timo Wahl (s3812030)
 
 def main():
-
     # Testing dataset with 37.5% eligibility, as is hinted at in the paper
     print("Generating training/testing data for the neural network")
     ageDataset = dataGen.modifyData(generateNewAge(dataGen.generatePerfectData(TESTING_DATA_POINTS*2)), TESTING_DATA_POINTS, 'TEST', 'Data/age/ageDatasetPreProcessed')
@@ -38,8 +37,12 @@ def main():
 
 # Function that generates a new age value, from 0-105, with steps of 5
 def generateNewAge(df):
-    for i in range(len(df.Age)):
-        df.loc[i, "Age"] = random.choice(list(range(0, 105, 5)))
+    for i in range(int(len(df.Age)*0.625)):
+        if df.loc[i, "Gender"] == 1:
+            df.loc[i, "Age"] = random.choice(list(range(0, 65, 5)))
+        if df.loc[i, "Gender"] == 0:
+            df.loc[i, "Age"] = random.choice(list(range(0, 60, 5)))
+        df.loc[i, "Eligible"] = 0
     return df
 
 # Failing on age conditions with steps of 5 for the age
