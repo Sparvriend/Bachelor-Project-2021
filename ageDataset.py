@@ -131,6 +131,7 @@ def makeAgeGraphNNSplit(test, predictions, name):
 
 # Function that finalizes a graph (adding legend/labels etc)
 def finalizeGraph(legend, name):
+    plt.ylim(0.0, 1.05)
     plt.legend(legend)
     plt.ylabel('Output') 
     plt.xlabel('Age')
