@@ -1,6 +1,6 @@
 # Author: Timo Wahl (S3812030)
 # Bachelor-Project-2021
-# Code for final thesis for the bachelor Artificial Intelligence at the University of Groningen
+# Machine learning systems rationale analysis
 # Daily Supervisor: C.C. Steging & Second Assesor: B. Verheij
 
 # Abstract:
